@@ -1,0 +1,488 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  PUBLISHER
+  ADVERTISER
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum OfferStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  EXPIRED
+}
+
+enum ConversionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// Models
+model User {
+  id                String        @id @default(cuid())
+  email             String        @unique
+  password          String
+  role              UserRole
+  status            UserStatus    @default(PENDING)
+  
+  // Profile
+  firstName         String?
+  lastName          String?
+  firstNameKana     String?
+  lastNameKana      String?
+  companyName       String?
+  phoneNumber       String?
+  faxNumber         String?
+  dateOfBirth       DateTime?
+  
+  // Address
+  postalCode        String?
+  prefecture        String?
+  city              String?
+  address           String?
+  building          String?
+  
+  // Business
+  invoiceNumber     String?
+  
+  // Relations
+  publishers        Publisher[]
+  advertisers       Advertiser[]
+  adminActions      AdminAction[]
+  tickets           Ticket[]
+  ticketComments    TicketComment[]
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  lastLoginAt       DateTime?
+  
+  @@index([email])
+  @@index([role, status])
+}
+
+model Publisher {
+  id                String        @id @default(cuid())
+  userId            String        @unique
+  user              User          @relation(fields: [userId], references: [id])
+  
+  // Bank Account
+  bankName          String?
+  branchName        String?
+  accountType       String?
+  accountNumber     String?
+  accountHolder     String?
+  
+  // Sites
+  sites             Site[]
+  
+  // Relations
+  clicks            Click[]
+  conversions       Conversion[]
+  payouts           Payout[]
+  offerApplications OfferApplication[]
+  
+  // Stats (denormalized for performance)
+  totalRevenue      Float         @default(0)
+  pendingRevenue    Float         @default(0)
+  lifetimeRevenue   Float         @default(0)
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@index([userId])
+}
+
+model Advertiser {
+  id                String        @id @default(cuid())
+  userId            String        @unique
+  user              User          @relation(fields: [userId], references: [id])
+  
+  // Relations
+  offers            Offer[]
+  conversions       Conversion[]
+  invoices          Invoice[]
+  
+  // Stats
+  totalSpend        Float         @default(0)
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@index([userId])
+}
+
+model Site {
+  id                String        @id @default(cuid())
+  publisherId       String
+  publisher         Publisher     @relation(fields: [publisherId], references: [id])
+  
+  name              String
+  url               String
+  category          String?
+  description       String?
+  monthlyPV         Int?
+  
+  isActive          Boolean       @default(true)
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@index([publisherId])
+}
+
+model Offer {
+  id                String        @id @default(cuid())
+  advertiserId      String
+  advertiser        Advertiser    @relation(fields: [advertiserId], references: [id])
+  
+  // Basic Info
+  name              String
+  description       String?
+  category          String
+  tags              String[]
+  
+  // URLs
+  landingPageUrl    String
+  previewUrl        String?
+  
+  // Commission
+  commissionType    String        // CPA, CPS, CPC, CPM
+  commissionAmount  Float
+  commissionPercent Float?
+  
+  // Terms
+  terms             String?
+  prohibitedTerms   String?
+  
+  // Tracking
+  conversionPoint   String
+  cookieWindow      Int           @default(30) // days
+  approvalWindow    Int           @default(30) // days
+  
+  // Inventory
+  sku               String?
+  stockQuantity     Int?
+  
+  // Status
+  status            OfferStatus   @default(DRAFT)
+  isPrivate         Boolean       @default(false)
+  requireApproval   Boolean       @default(false)
+  
+  // Relations
+  clicks            Click[]
+  conversions       Conversion[]
+  creatives         Creative[]
+  applications      OfferApplication[]
+  
+  // Stats
+  clickCount        Int           @default(0)
+  conversionCount   Int           @default(0)
+  approvalRate      Float         @default(0)
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  expiresAt         DateTime?
+  
+  @@index([advertiserId])
+  @@index([status])
+  @@index([category])
+}
+
+model Creative {
+  id                String        @id @default(cuid())
+  offerId           String
+  offer             Offer         @relation(fields: [offerId], references: [id])
+  
+  type              String        // banner, text, video
+  name              String
+  imageUrl          String?
+  width             Int?
+  height            Int?
+  content           String?
+  
+  isActive          Boolean       @default(true)
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@index([offerId])
+}
+
+model OfferApplication {
+  id                String        @id @default(cuid())
+  offerId           String
+  offer             Offer         @relation(fields: [offerId], references: [id])
+  publisherId       String
+  publisher         Publisher     @relation(fields: [publisherId], references: [id])
+  
+  status            String        // pending, approved, rejected
+  message           String?
+  rejectionReason   String?
+  
+  approvedAt        DateTime?
+  rejectedAt        DateTime?
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@unique([offerId, publisherId])
+  @@index([offerId])
+  @@index([publisherId])
+  @@index([status])
+}
+
+model Click {
+  id                String        @id @default(cuid())
+  clickId           String        @unique
+  
+  offerId           String
+  offer             Offer         @relation(fields: [offerId], references: [id])
+  publisherId       String
+  publisher         Publisher     @relation(fields: [publisherId], references: [id])
+  
+  // Tracking Data
+  subId             String?
+  subId2            String?
+  subId3            String?
+  subId4            String?
+  subId5            String?
+  
+  // Request Data
+  ip                String
+  userAgent         String
+  referer           String?
+  device            String?
+  os                String?
+  browser           String?
+  country           String?
+  
+  // Conversion
+  conversion        Conversion?
+  
+  createdAt         DateTime      @default(now())
+  
+  @@index([clickId])
+  @@index([offerId])
+  @@index([publisherId])
+  @@index([createdAt])
+}
+
+model Conversion {
+  id                String        @id @default(cuid())
+  clickId           String        @unique
+  click             Click         @relation(fields: [clickId], references: [clickId])
+  
+  offerId           String
+  offer             Offer         @relation(fields: [offerId], references: [id])
+  publisherId       String
+  publisher         Publisher     @relation(fields: [publisherId], references: [id])
+  advertiserId      String
+  advertiser        Advertiser    @relation(fields: [advertiserId], references: [id])
+  
+  // Transaction Data
+  transactionId     String
+  amount            Float
+  quantity          Int           @default(1)
+  currency          String        @default("JPY")
+  
+  // Commission
+  publisherRevenue  Float
+  
+  // Status
+  status            ConversionStatus @default(PENDING)
+  
+  // Approval
+  approvedBy        String?
+  approvedAt        DateTime?
+  rejectedBy        String?
+  rejectedAt        DateTime?
+  rejectionReason   String?
+  
+  // Payout
+  payoutId          String?
+  payout            Payout?       @relation(fields: [payoutId], references: [id])
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@unique([clickId, transactionId])
+  @@index([offerId])
+  @@index([publisherId])
+  @@index([advertiserId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Payout {
+  id                String        @id @default(cuid())
+  publisherId       String
+  publisher         Publisher     @relation(fields: [publisherId], references: [id])
+  
+  // Amount
+  amount            Float
+  currency          String        @default("JPY")
+  fee               Float         @default(0)
+  netAmount         Float
+  
+  // Status
+  status            PaymentStatus @default(PENDING)
+  
+  // Payment Details
+  paymentMethod     String?       // bank_transfer, paypal, etc
+  transactionId     String?
+  
+  // Relations
+  conversions       Conversion[]
+  
+  processedAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@index([publisherId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Invoice {
+  id                String        @id @default(cuid())
+  advertiserId      String
+  advertiser        Advertiser    @relation(fields: [advertiserId], references: [id])
+  
+  invoiceNumber     String        @unique
+  amount            Float
+  tax               Float
+  totalAmount       Float
+  currency          String        @default("JPY")
+  
+  status            PaymentStatus @default(PENDING)
+  
+  dueDate           DateTime
+  paidAt            DateTime?
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@index([advertiserId])
+  @@index([status])
+}
+
+model Ticket {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  
+  subject           String
+  category          String
+  status            TicketStatus  @default(OPEN)
+  priority          TicketPriority @default(MEDIUM)
+  
+  assignedTo        String?
+  
+  comments          TicketComment[]
+  
+  resolvedAt        DateTime?
+  closedAt          DateTime?
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+  @@index([assignedTo])
+}
+
+model TicketComment {
+  id                String        @id @default(cuid())
+  ticketId          String
+  ticket            Ticket        @relation(fields: [ticketId], references: [id])
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  
+  content           String
+  isInternal        Boolean       @default(false)
+  
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  
+  @@index([ticketId])
+  @@index([userId])
+}
+
+model Invitation {
+  id                String        @id @default(cuid())
+  code              String        @unique
+  
+  role              UserRole
+  invitedBy         String
+  
+  maxUses           Int           @default(1)
+  usedCount         Int           @default(0)
+  
+  expiresAt         DateTime
+  
+  createdAt         DateTime      @default(now())
+  
+  @@index([code])
+}
+
+model AdminAction {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  
+  action            String
+  entityType        String
+  entityId          String
+  metadata          Json?
+  
+  ip                String?
+  userAgent         String?
+  
+  createdAt         DateTime      @default(now())
+  
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

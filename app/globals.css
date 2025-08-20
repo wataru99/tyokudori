@@ -1,0 +1,203 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Refined, readable color palette */
+    --background: 0 0% 99%;
+    --foreground: 0 0% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 15%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 98%;
+    --secondary-foreground: 0 0% 25%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 210 40% 96%;
+    --accent-foreground: 0 0% 25%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.5rem;
+    
+    /* Success and warning colors */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 15%;
+    
+    /* Typography */
+    --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+    --font-display: var(--font-poppins), system-ui, -apple-system, sans-serif;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    line-height: 1.6;
+  }
+  
+  /* Typography */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.4;
+  }
+  
+  h1 { font-size: 1.875rem; font-weight: 700; }
+  h2 { font-size: 1.5rem; font-weight: 600; }
+  h3 { font-size: 1.25rem; font-weight: 600; }
+  
+  /* Prevent layout breaks on small screens */
+  .min-w-content {
+    min-width: 768px;
+  }
+  
+  /* Ensure numbers and important text don't wrap */
+  .no-wrap {
+    white-space: nowrap;
+  }
+  
+  /* Horizontal scroll for content containers */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Prevent card content from wrapping */
+  .card-metric {
+    white-space: nowrap;
+  }
+  
+  /* Focus styles */
+  *:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* Enhanced card styles */
+  .card-enhanced {
+    @apply bg-card border border-border shadow-sm hover:shadow-md transition-all duration-300 ease-in-out;
+    @apply hover:-translate-y-1;
+  }
+  
+  /* Professional button styles */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground font-medium tracking-wide hover:bg-primary/90 transition-all duration-200;
+    @apply hover:shadow-lg hover:-translate-y-0.5;
+  }
+  
+  /* Modern badge styles */
+  .badge-enhanced {
+    @apply font-medium tracking-wide border border-border/50 shadow-sm;
+    @apply transition-all duration-200 hover:shadow-md;
+  }
+  
+  /* Animated elements */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  .animate-slide-in {
+    animation: slideIn 0.6s ease-out;
+  }
+  
+  /* Animation keyframes */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  
+  /* Enhanced table styles */
+  .table-enhanced {
+    @apply border-separate border-spacing-0;
+  }
+  
+  .table-enhanced th {
+    @apply bg-secondary/50 font-semibold text-secondary-foreground;
+    @apply border-b border-border sticky top-0 backdrop-blur-sm;
+  }
+  
+  .table-enhanced td {
+    @apply border-b border-border/50 transition-colors duration-200;
+  }
+  
+  .table-enhanced tr:hover td {
+    @apply bg-secondary/30;
+  }
+  
+  /* Status indicators */
+  .status-success {
+    @apply bg-green-50 text-green-700 border-green-200;
+  }
+  
+  .status-warning {
+    @apply bg-amber-50 text-amber-700 border-amber-200;
+  }
+  
+  .status-error {
+    @apply bg-red-50 text-red-700 border-red-200;
+  }
+  
+  .status-info {
+    @apply bg-blue-50 text-blue-700 border-blue-200;
+  }
+}

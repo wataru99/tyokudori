@@ -1,0 +1,65 @@
+services:
+  # Web Service (Next.js + Express API)
+  - type: web
+    name: affiliate-app
+    runtime: node
+    region: oregon
+    plan: standard
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        fromService:
+          type: web
+          name: affiliate-app
+          property: port
+      - key: DATABASE_URL
+        fromDatabase:
+          name: affiliate-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: affiliate-redis
+          property: connectionString
+      - key: NEXTAUTH_SECRET
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: EXTERNAL_AF_BASE
+        value: https://markecats.co.jp/product/afad/
+    autoDeploy: true
+
+  # Background Worker
+  - type: worker
+    name: affiliate-worker
+    runtime: node
+    region: oregon
+    plan: starter
+    buildCommand: npm install && npm run build
+    startCommand: node server/worker.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: affiliate-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: affiliate-redis
+          property: connectionString
+
+databases:
+  - name: affiliate-db
+    plan: standard
+    postgresMajorVersion: 15
+
+# Redis for sessions, cache, and job queue
+  - name: affiliate-redis
+    type: redis
+    plan: starter
+    maxMemoryPolicy: allkeys-lru
