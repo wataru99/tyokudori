@@ -43,21 +43,56 @@ export default function AdminUsersPage() {
   }, [])
 
   const fetchUsers = async () => {
-    try {
-      setLoading(true)
-      setError(null)
-      const response = await fetch('/api/users')
-      if (!response.ok) {
-        throw new Error(`Error: ${response.status} ${response.statusText}`)
+    setLoading(true)
+    setError(null)
+    // モックデータを使用
+    setUsers([
+      {
+        id: '1',
+        email: 'tanaka@example.com',
+        role: 'ADVERTISER',
+        status: 'PENDING',
+        firstName: '太郎',
+        lastName: '田中',
+        companyName: '株式会社ABC',
+        createdAt: '2024-02-15T09:30:00Z',
+        updatedAt: '2024-02-15T09:30:00Z'
+      },
+      {
+        id: '2',
+        email: 'sato@example.com',
+        role: 'PUBLISHER',
+        status: 'ACTIVE',
+        firstName: '花子',
+        lastName: '佐藤',
+        companyName: null,
+        createdAt: '2024-02-14T14:15:00Z',
+        updatedAt: '2024-02-14T14:15:00Z'
+      },
+      {
+        id: '3',
+        email: 'suzuki@example.com',
+        role: 'PUBLISHER',
+        status: 'PENDING',
+        firstName: '一郎',
+        lastName: '鈴木',
+        companyName: null,
+        createdAt: '2024-02-13T16:45:00Z',
+        updatedAt: '2024-02-13T16:45:00Z'
+      },
+      {
+        id: '4',
+        email: 'yamada@company.com',
+        role: 'ADVERTISER',
+        status: 'ACTIVE',
+        firstName: '美咲',
+        lastName: '山田',
+        companyName: 'XYZ株式会社',
+        createdAt: '2024-02-10T10:00:00Z',
+        updatedAt: '2024-02-12T15:30:00Z'
       }
-      const data = await response.json()
-      setUsers(data.users)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch users')
-      console.error('Error fetching users:', err)
-    } finally {
-      setLoading(false)
-    }
+    ])
+    setLoading(false)
   }
 
   const filteredUsers = users.filter(user => {
@@ -203,7 +238,11 @@ export default function AdminUsersPage() {
                   </TableHeader>
                   <TableBody>
                     {filteredUsers.map((user) => (
-                    <TableRow key={user.id}>
+                    <TableRow 
+                      key={user.id}
+                      className="cursor-pointer hover:bg-gray-50 transition-colors"
+                      onClick={() => handleNavigate(`/admin/users/${user.id}`)}
+                    >
                       <TableCell>
                         <div>
                           <div className="font-medium">{user.firstName} {user.lastName}</div>

@@ -31,7 +31,8 @@ import {
   AlertCircle,
   MessageSquare,
   User,
-  Building
+  Building,
+  Send
 } from 'lucide-react'
 
 interface Inquiry {
@@ -44,7 +45,6 @@ interface Inquiry {
   subject: string
   message: string
   status: 'NEW' | 'IN_PROGRESS' | 'RESOLVED' | 'ARCHIVED'
-  priority: 'LOW' | 'MEDIUM' | 'HIGH'
   createdAt: string
   repliedAt?: string
   assignee?: string
@@ -71,7 +71,6 @@ export default function AdminInquiriesPage() {
       subject: '報酬の支払いタイミングについて',
       message: '先月の報酬がまだ振り込まれていないようですが、いつ頃の予定でしょうか？',
       status: 'NEW',
-      priority: 'HIGH',
       createdAt: '2024-02-15T10:30:00Z'
     },
     {
@@ -84,7 +83,6 @@ export default function AdminInquiriesPage() {
       subject: 'キャンペーンの成果が伸び悩んでいます',
       message: '先週から開始したキャンペーンの成果が想定を下回っています。改善策をご提案いただけますか？',
       status: 'IN_PROGRESS',
-      priority: 'MEDIUM',
       createdAt: '2024-02-15T09:15:00Z',
       assignee: '営業担当A'
     },
@@ -97,7 +95,6 @@ export default function AdminInquiriesPage() {
       subject: 'リンクが正しく動作しません',
       message: 'アフィリエイトリンクをクリックしても404エラーが表示されます。確認をお願いします。',
       status: 'RESOLVED',
-      priority: 'HIGH',
       createdAt: '2024-02-14T14:00:00Z',
       repliedAt: '2024-02-14T16:30:00Z'
     },
@@ -111,7 +108,6 @@ export default function AdminInquiriesPage() {
       subject: '新しいクリエイティブの提案',
       message: '春のキャンペーンに向けて新しいバナークリエイティブを準備しました。レビューをお願いします。',
       status: 'NEW',
-      priority: 'LOW',
       createdAt: '2024-02-15T11:45:00Z'
     }
   ]
@@ -155,18 +151,6 @@ export default function AdminInquiriesPage() {
     return labels[category] || category
   }
 
-  const getPriorityBadge = (priority: string) => {
-    switch (priority) {
-      case 'HIGH':
-        return <Badge variant="destructive">高</Badge>
-      case 'MEDIUM':
-        return <Badge variant="warning">中</Badge>
-      case 'LOW':
-        return <Badge variant="secondary">低</Badge>
-      default:
-        return null
-    }
-  }
 
   const handleReply = () => {
     if (!selectedInquiry || !replyMessage) return
@@ -344,7 +328,6 @@ export default function AdminInquiriesPage() {
                     <span>{selectedInquiry.subject}</span>
                     <div className="flex gap-2">
                       {getStatusBadge(selectedInquiry.status)}
-                      {getPriorityBadge(selectedInquiry.priority)}
                     </div>
                   </DialogTitle>
                   <DialogDescription>
@@ -512,7 +495,6 @@ function InquiryTable({
         <TableHeader>
           <TableRow>
             <TableHead>ステータス</TableHead>
-            <TableHead>優先度</TableHead>
             <TableHead>送信者</TableHead>
             <TableHead>件名</TableHead>
             <TableHead>カテゴリー</TableHead>
@@ -524,7 +506,6 @@ function InquiryTable({
           {inquiries.map((inquiry) => (
             <TableRow key={inquiry.id}>
               <TableCell>{getStatusBadge(inquiry.status)}</TableCell>
-              <TableCell>{getPriorityBadge(inquiry.priority)}</TableCell>
               <TableCell>
                 <div>
                   <p className="font-medium">{inquiry.senderName}</p>
@@ -597,15 +578,3 @@ function getCategoryLabel(category: string) {
   return labels[category] || category
 }
 
-function getPriorityBadge(priority: string) {
-  switch (priority) {
-    case 'HIGH':
-      return <Badge variant="destructive" className="w-fit">高</Badge>
-    case 'MEDIUM':
-      return <Badge variant="warning" className="w-fit">中</Badge>
-    case 'LOW':
-      return <Badge variant="secondary" className="w-fit">低</Badge>
-    default:
-      return null
-  }
-}

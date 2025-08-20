@@ -7,7 +7,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { LoadingOverlay } from '@/components/ui/loading-overlay'
 import { 
   Users, 
   Megaphone, 
@@ -51,12 +50,11 @@ interface Conversion {
 export default function AdminDashboard() {
   const router = useRouter()
   const pathname = usePathname()
-  const [isLoading, setIsLoading] = useState(false)
-  const [targetPath, setTargetPath] = useState<string | null>(null)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
   const [selectedConversion, setSelectedConversion] = useState<Conversion | null>(null)
   const [currentTime, setCurrentTime] = useState<string>('')
+  const [selectedKPI, setSelectedKPI] = useState<string | null>(null)
 
   useEffect(() => {
     setCurrentTime(new Date().toLocaleString('ja-JP'))
@@ -66,13 +64,6 @@ export default function AdminDashboard() {
     return () => clearInterval(interval)
   }, [])
 
-  // Reset loading when route changes
-  useEffect(() => {
-    if (targetPath && pathname === targetPath) {
-      setIsLoading(false)
-      setTargetPath(null)
-    }
-  }, [pathname, targetPath])
 
   // Mock data
   const recentUsers: User[] = [
@@ -144,34 +135,19 @@ export default function AdminDashboard() {
   ]
 
   const handleUserClick = (user: User) => {
-    setIsLoading(true)
-    setTimeout(() => {
-      setSelectedUser(user)
-      setIsLoading(false)
-    }, 150)
+    setSelectedUser(user)
   }
 
   const handleCampaignClick = (campaign: Campaign) => {
-    setIsLoading(true)
-    setTimeout(() => {
-      setSelectedCampaign(campaign)
-      setIsLoading(false)
-    }, 150)
+    setSelectedCampaign(campaign)
   }
 
   const handleConversionClick = (conversion: Conversion) => {
-    setIsLoading(true)
-    setTimeout(() => {
-      setSelectedConversion(conversion)
-      setIsLoading(false)
-    }, 150)
+    setSelectedConversion(conversion)
   }
 
   const handleNavigate = (path: string) => {
     if (pathname === path) return
-    
-    setIsLoading(true)
-    setTargetPath(path)
     router.push(path)
   }
 
@@ -205,7 +181,6 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container max-w-7xl mx-auto px-4 py-8">
-        <LoadingOverlay isVisible={isLoading} />
 
         {/* Page Header */}
         <div className="bg-card rounded-md shadow-sm p-8 mb-8">
@@ -227,7 +202,10 @@ export default function AdminDashboard() {
 
         {/* KPI Cards */}
         <div className="grid gap-4 md:grid-cols-4 mb-6">
-          <Card>
+          <Card 
+            className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+            onClick={() => setSelectedKPI('users')}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">総ユーザー数</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
@@ -240,7 +218,10 @@ export default function AdminDashboard() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card
+            className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+            onClick={() => setSelectedKPI('campaigns')}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">アクティブ案件</CardTitle>
               <Megaphone className="h-4 w-4 text-muted-foreground" />
@@ -253,7 +234,10 @@ export default function AdminDashboard() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card
+            className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+            onClick={() => setSelectedKPI('pending')}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">承認待ち</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
@@ -266,7 +250,10 @@ export default function AdminDashboard() {
               </p>
             </CardContent>
           </Card>
-          <Card>
+          <Card
+            className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+            onClick={() => setSelectedKPI('revenue')}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">月間売上</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -615,6 +602,360 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
+          </DialogContent>
+        </Dialog>
+
+        {/* KPI Detail Dialogs */}
+        {/* Users KPI Dialog */}
+        <Dialog open={selectedKPI === 'users'} onOpenChange={() => setSelectedKPI(null)}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>ユーザー統計の詳細</DialogTitle>
+              <DialogDescription>
+                システム全体のユーザー登録状況と内訳
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">総ユーザー数</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{totalUsers}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">今月の新規</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">+12</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">アクティブ率</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">87%</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* User List */}
+              <div>
+                <h4 className="font-semibold mb-3">ユーザー一覧</h4>
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>名前</TableHead>
+                        <TableHead>メール</TableHead>
+                        <TableHead>権限</TableHead>
+                        <TableHead>ステータス</TableHead>
+                        <TableHead>登録日</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentUsers.map((user) => (
+                        <TableRow 
+                          key={user.id}
+                          className="cursor-pointer hover:bg-gray-50"
+                          onClick={() => handleNavigate(`/admin/users/${user.id}`)}
+                        >
+                          <TableCell className="font-medium">{user.name}</TableCell>
+                          <TableCell className="text-sm text-gray-600">{user.email}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {user.role === 'ADMIN' ? '管理者' :
+                               user.role === 'ADVERTISER' ? '広告主' : 'アフィリエイター'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={`${getStatusBadgeColor(user.status)} text-xs border`}>
+                              {user.status === 'ACTIVE' ? 'アクティブ' :
+                               user.status === 'PENDING' ? '承認待ち' : '停止中'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-sm">{formatDate(user.createdAt)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <Button variant="outline" onClick={() => setSelectedKPI(null)}>
+                  閉じる
+                </Button>
+                <Button onClick={() => handleNavigate('/admin/users')}>
+                  ユーザー管理へ
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Campaigns KPI Dialog */}
+        <Dialog open={selectedKPI === 'campaigns'} onOpenChange={() => setSelectedKPI(null)}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>案件統計の詳細</DialogTitle>
+              <DialogDescription>
+                アクティブな案件の状況と成果
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">総案件数</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">32</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">アクティブ</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">23</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">今月の成果数</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">1,245</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Campaign List */}
+              <div>
+                <h4 className="font-semibold mb-3">アクティブ案件一覧</h4>
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>案件名</TableHead>
+                        <TableHead>広告主</TableHead>
+                        <TableHead>ステータス</TableHead>
+                        <TableHead>成果数</TableHead>
+                        <TableHead>売上</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentCampaigns.map((campaign) => (
+                        <TableRow 
+                          key={campaign.id}
+                          className="cursor-pointer hover:bg-gray-50"
+                          onClick={() => handleNavigate(`/admin/campaigns/${campaign.id}`)}
+                        >
+                          <TableCell className="font-medium">{campaign.name}</TableCell>
+                          <TableCell className="text-sm text-gray-600">{campaign.advertiserName}</TableCell>
+                          <TableCell>
+                            <Badge className={`${getStatusBadgeColor(campaign.status)} text-xs border`}>
+                              {campaign.status === 'ACTIVE' ? 'アクティブ' :
+                               campaign.status === 'PAUSED' ? '一時停止' : '下書き'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="font-semibold">{campaign.conversions}</TableCell>
+                          <TableCell className="font-semibold">¥{campaign.revenue.toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <Button variant="outline" onClick={() => setSelectedKPI(null)}>
+                  閉じる
+                </Button>
+                <Button onClick={() => handleNavigate('/admin/campaigns')}>
+                  案件管理へ
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Pending KPI Dialog */}
+        <Dialog open={selectedKPI === 'pending'} onOpenChange={() => setSelectedKPI(null)}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>承認待ち成果の詳細</DialogTitle>
+              <DialogDescription>
+                承認が必要な成果の状況
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">承認待ち件数</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-orange-600">{pendingApprovals}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">合計金額</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">¥{pendingConversions.reduce((sum, c) => sum + c.amount, 0).toLocaleString()}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">平均待機時間</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">2.5日</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Pending List */}
+              <div>
+                <h4 className="font-semibold mb-3">承認待ちリスト</h4>
+                <div className="border rounded-lg">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>案件名</TableHead>
+                        <TableHead>アフィリエイター</TableHead>
+                        <TableHead>金額</TableHead>
+                        <TableHead>発生日時</TableHead>
+                        <TableHead>ステータス</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {pendingConversions.map((conversion) => (
+                        <TableRow 
+                          key={conversion.id}
+                          className="cursor-pointer hover:bg-gray-50"
+                          onClick={() => handleNavigate(`/admin/conversions/${conversion.id}`)}
+                        >
+                          <TableCell className="font-medium">{conversion.campaignName}</TableCell>
+                          <TableCell className="text-sm text-gray-600">{conversion.publisherName}</TableCell>
+                          <TableCell className="font-semibold">¥{conversion.amount.toLocaleString()}</TableCell>
+                          <TableCell className="text-sm">{formatDateTime(conversion.createdAt)}</TableCell>
+                          <TableCell>
+                            <Badge className="bg-orange-100 text-orange-800 text-xs border">
+                              承認待ち
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <Button variant="outline" onClick={() => setSelectedKPI(null)}>
+                  閉じる
+                </Button>
+                <Button onClick={() => handleNavigate('/admin/conversions')}>
+                  成果管理へ
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Revenue KPI Dialog */}
+        <Dialog open={selectedKPI === 'revenue'} onOpenChange={() => setSelectedKPI(null)}>
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>売上統計の詳細</DialogTitle>
+              <DialogDescription>
+                月間売上の詳細分析
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6">
+              {/* Summary Cards */}
+              <div className="grid grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">今月の売上</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">¥{monthlyRevenue.toLocaleString()}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">前月比</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">+8.5%</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm">目標達成率</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">92%</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Revenue Breakdown */}
+              <div>
+                <h4 className="font-semibold mb-3">カテゴリ別売上</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium">健康・美容</span>
+                    <div className="text-right">
+                      <div className="font-bold">¥1,085,000</div>
+                      <div className="text-sm text-gray-500">44.3%</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium">金融</span>
+                    <div className="text-right">
+                      <div className="font-bold">¥735,000</div>
+                      <div className="text-sm text-gray-500">30.0%</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium">教育・学習</span>
+                    <div className="text-right">
+                      <div className="font-bold">¥428,000</div>
+                      <div className="text-sm text-gray-500">17.5%</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium">その他</span>
+                    <div className="text-right">
+                      <div className="font-bold">¥202,000</div>
+                      <div className="text-sm text-gray-500">8.2%</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <Button variant="outline" onClick={() => setSelectedKPI(null)}>
+                  閉じる
+                </Button>
+                <Button onClick={() => handleNavigate('/admin/reports')}>
+                  詳細レポートへ
+                </Button>
+              </div>
+            </div>
           </DialogContent>
         </Dialog>
       </div>

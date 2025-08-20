@@ -66,25 +66,165 @@ export default function UserDetailPage() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        
-        const response = await fetch(`http://localhost:4000/api/users/${userId}`)
-        if (response.ok) {
-          const userData = await response.json()
-          setUser(userData)
-        } else if (response.status === 404) {
-          setError('ユーザーが見つかりません')
-        } else {
-          setError('ユーザー情報の取得に失敗しました')
+      setLoading(true)
+      setError(null)
+      
+      // モックデータを使用
+      const mockUsers: Record<string, User> = {
+        '1': {
+          id: '1',
+          email: 'tanaka@example.com',
+          role: 'ADVERTISER',
+          status: 'PENDING',
+          firstName: '太郎',
+          lastName: '田中',
+          companyName: '株式会社ABC',
+          phoneNumber: '03-1234-5678',
+          postalCode: '100-0001',
+          prefecture: '東京都',
+          city: '千代田区',
+          address: '丸の内1-1-1',
+          building: 'ABCビル10F',
+          createdAt: '2024-02-15T09:30:00Z',
+          updatedAt: '2024-02-15T09:30:00Z',
+          emailVerifiedAt: '2024-02-15T10:00:00Z',
+          lastLoginAt: '2024-02-20T14:30:00Z',
+          publishers: [],
+          advertisers: [
+            {
+              id: 'adv1',
+              name: '株式会社ABC',
+              status: 'ACTIVE'
+            }
+          ],
+          adminActions: [
+            {
+              id: 'action1',
+              action: 'アカウント承認',
+              targetType: 'USER',
+              targetId: '1',
+              reason: '書類審査完了',
+              createdAt: '2024-02-16T09:00:00Z'
+            }
+          ],
+          tickets: []
+        },
+        '2': {
+          id: '2',
+          email: 'sato@example.com',
+          role: 'PUBLISHER',
+          status: 'ACTIVE',
+          firstName: '花子',
+          lastName: '佐藤',
+          companyName: null,
+          phoneNumber: '090-1234-5678',
+          postalCode: '150-0001',
+          prefecture: '東京都',
+          city: '渋谷区',
+          address: '神宮前1-1-1',
+          building: null,
+          createdAt: '2024-02-14T14:15:00Z',
+          updatedAt: '2024-02-14T14:15:00Z',
+          emailVerifiedAt: '2024-02-14T15:00:00Z',
+          lastLoginAt: '2024-02-20T16:45:00Z',
+          publishers: [
+            {
+              id: 'pub1',
+              name: 'メディアA',
+              status: 'ACTIVE'
+            }
+          ],
+          advertisers: [],
+          adminActions: [],
+          tickets: [
+            {
+              id: 'ticket1',
+              title: '報酬支払いについて',
+              status: 'OPEN',
+              priority: 'MEDIUM',
+              createdAt: '2024-02-18T10:00:00Z'
+            }
+          ]
+        },
+        '3': {
+          id: '3',
+          email: 'suzuki@example.com',
+          role: 'PUBLISHER',
+          status: 'PENDING',
+          firstName: '一郎',
+          lastName: '鈴木',
+          companyName: null,
+          phoneNumber: null,
+          postalCode: null,
+          prefecture: null,
+          city: null,
+          address: null,
+          building: null,
+          createdAt: '2024-02-13T16:45:00Z',
+          updatedAt: '2024-02-13T16:45:00Z',
+          emailVerifiedAt: null,
+          lastLoginAt: null,
+          publishers: [],
+          advertisers: [],
+          adminActions: [],
+          tickets: []
+        },
+        '4': {
+          id: '4',
+          email: 'yamada@company.com',
+          role: 'ADVERTISER',
+          status: 'ACTIVE',
+          firstName: '美咲',
+          lastName: '山田',
+          companyName: 'XYZ株式会社',
+          phoneNumber: '06-9876-5432',
+          postalCode: '530-0001',
+          prefecture: '大阪府',
+          city: '大阪市北区',
+          address: '梅田1-2-3',
+          building: 'XYZタワー5F',
+          createdAt: '2024-02-10T10:00:00Z',
+          updatedAt: '2024-02-12T15:30:00Z',
+          emailVerifiedAt: '2024-02-10T11:00:00Z',
+          lastLoginAt: '2024-02-19T09:15:00Z',
+          publishers: [],
+          advertisers: [
+            {
+              id: 'adv2',
+              name: 'XYZ株式会社',
+              status: 'ACTIVE'
+            }
+          ],
+          adminActions: [
+            {
+              id: 'action2',
+              action: 'アカウント有効化',
+              targetType: 'USER',
+              targetId: '4',
+              reason: '初期設定完了',
+              createdAt: '2024-02-12T15:30:00Z'
+            }
+          ],
+          tickets: [
+            {
+              id: 'ticket2',
+              title: 'キャンペーン設定サポート',
+              status: 'RESOLVED',
+              priority: 'LOW',
+              createdAt: '2024-02-15T13:20:00Z'
+            }
+          ]
         }
-      } catch (error) {
-        console.error('Failed to fetch user:', error)
-        setError('ネットワークエラーが発生しました')
-      } finally {
-        setLoading(false)
       }
+
+      const userData = mockUsers[userId]
+      if (userData) {
+        setUser(userData)
+      } else {
+        setError('ユーザーが見つかりません')
+      }
+      
+      setLoading(false)
     }
 
     if (userId) {

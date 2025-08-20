@@ -6,7 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { Calendar, Download, TrendingUp, TrendingDown, DollarSign, Users, ShoppingCart, Target } from 'lucide-react'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Calendar, Download, TrendingUp, TrendingDown, DollarSign, Users, ShoppingCart, Target, BarChart3, LineChart, PieChart } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 // import { DatePickerWithRange } from '@/components/ui/date-range-picker'
 // Recharts imports temporarily commented out due to vendor.js error
@@ -69,6 +71,7 @@ export default function AdminReportsPage() {
   const [groupBy, setGroupBy] = useState('day')
   const [selectedOffer, setSelectedOffer] = useState('all')
   const [selectedPublisher, setSelectedPublisher] = useState('all')
+  const [selectedKPI, setSelectedKPI] = useState<string | null>(null)
 
   const handleExportCSV = () => {
     toast({
@@ -172,7 +175,10 @@ export default function AdminReportsPage() {
 
       {/* KPIカード */}
       <div className="grid gap-4 md:grid-cols-6 mb-6">
-        <Card>
+        <Card 
+          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+          onClick={() => setSelectedKPI('revenue')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">総売上</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -185,7 +191,10 @@ export default function AdminReportsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+          onClick={() => setSelectedKPI('conversions')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">成果件数</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
@@ -198,7 +207,10 @@ export default function AdminReportsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+          onClick={() => setSelectedKPI('cvr')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">CVR</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
@@ -211,7 +223,10 @@ export default function AdminReportsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+          onClick={() => setSelectedKPI('approval')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">承認率</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -224,7 +239,10 @@ export default function AdminReportsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+          onClick={() => setSelectedKPI('avgPrice')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">平均単価</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -237,7 +255,10 @@ export default function AdminReportsPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+          onClick={() => setSelectedKPI('roas')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">ROAS</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
@@ -270,8 +291,40 @@ export default function AdminReportsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[400px] flex items-center justify-center bg-gray-50 rounded-lg">
-                <p className="text-gray-500">グラフ表示機能は準備中です</p>
+              <div className="space-y-4">
+                <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg border-2 border-dashed">
+                  <div className="text-center">
+                    <LineChart className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500">売上推移グラフ</p>
+                  </div>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>日付</TableHead>
+                        <TableHead className="text-right">クリック数</TableHead>
+                        <TableHead className="text-right">成果数</TableHead>
+                        <TableHead className="text-right">CVR</TableHead>
+                        <TableHead className="text-right">売上</TableHead>
+                        <TableHead className="text-right">承認率</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {dailyData.map((day, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{day.date}</TableCell>
+                          <TableCell className="text-right">{day.clicks.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{day.conversions}</TableCell>
+                          <TableCell className="text-right">{((day.conversions / day.clicks) * 100).toFixed(2)}%</TableCell>
+                          <TableCell className="text-right font-semibold">¥{day.revenue.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{day.approvalRate}%</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -286,8 +339,40 @@ export default function AdminReportsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[400px] flex items-center justify-center bg-gray-50 rounded-lg">
-                <p className="text-gray-500">グラフ表示機能は準備中です</p>
+              <div className="space-y-4">
+                <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg border-2 border-dashed">
+                  <div className="text-center">
+                    <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500">案件別売上グラフ</p>
+                  </div>
+                </div>
+                
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>案件名</TableHead>
+                        <TableHead className="text-right">売上</TableHead>
+                        <TableHead className="text-right">成果数</TableHead>
+                        <TableHead className="text-right">CTR</TableHead>
+                        <TableHead className="text-right">CVR</TableHead>
+                        <TableHead className="text-right">平均単価</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {offerPerformance.map((offer, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">{offer.name}</TableCell>
+                          <TableCell className="text-right font-semibold">¥{offer.revenue.toLocaleString()}</TableCell>
+                          <TableCell className="text-right">{offer.conversions}</TableCell>
+                          <TableCell className="text-right">{offer.ctr}%</TableCell>
+                          <TableCell className="text-right">{offer.cvr}%</TableCell>
+                          <TableCell className="text-right">¥{Math.round(offer.revenue / offer.conversions).toLocaleString()}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -336,13 +421,372 @@ export default function AdminReportsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[400px] flex items-center justify-center bg-gray-50 rounded-lg">
-                <p className="text-gray-500">グラフ表示機能は準備中です</p>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg border-2 border-dashed">
+                    <div className="text-center">
+                      <PieChart className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500">カテゴリ別構成比</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <h4 className="font-semibold">カテゴリ別売上</h4>
+                    {categoryData.map((category, index) => (
+                      <div key={index} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div 
+                            className="w-4 h-4 rounded"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          <span className="font-medium">{category.name}</span>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold">{category.value}%</p>
+                          <p className="text-sm text-gray-500">¥{Math.round(totalRevenue * category.value / 100).toLocaleString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* KPI Detail Dialogs */}
+      <Dialog open={selectedKPI === 'revenue'} onOpenChange={() => setSelectedKPI(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>売上詳細分析</DialogTitle>
+            <DialogDescription>期間内の売上推移と内訳</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">¥{totalRevenue.toLocaleString()}</div>
+                  <p className="text-sm text-gray-500">総売上</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold text-green-600">+12.5%</div>
+                  <p className="text-sm text-gray-500">前期比成長率</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">¥{Math.round(totalRevenue / 7).toLocaleString()}</div>
+                  <p className="text-sm text-gray-500">日平均売上</p>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>日付</TableHead>
+                    <TableHead className="text-right">売上</TableHead>
+                    <TableHead className="text-right">前日比</TableHead>
+                    <TableHead className="text-right">構成比</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {dailyData.map((day, index) => (
+                    <TableRow key={index}>
+                      <TableCell>{day.date}</TableCell>
+                      <TableCell className="text-right font-semibold">¥{day.revenue.toLocaleString()}</TableCell>
+                      <TableCell className="text-right">
+                        {index > 0 ? (
+                          <span className={day.revenue > dailyData[index - 1].revenue ? 'text-green-600' : 'text-red-600'}>
+                            {((day.revenue / dailyData[index - 1].revenue - 1) * 100).toFixed(1)}%
+                          </span>
+                        ) : '-'}
+                      </TableCell>
+                      <TableCell className="text-right">{((day.revenue / totalRevenue) * 100).toFixed(1)}%</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={selectedKPI === 'conversions'} onOpenChange={() => setSelectedKPI(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>成果件数詳細分析</DialogTitle>
+            <DialogDescription>期間内の成果発生状況</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">{totalConversions}</div>
+                  <p className="text-sm text-gray-500">総成果数</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">{Math.round(totalConversions / 7)}</div>
+                  <p className="text-sm text-gray-500">日平均成果数</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">¥{avgOrderValue.toLocaleString()}</div>
+                  <p className="text-sm text-gray-500">成果単価</p>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-semibold">時間帯別成果発生</h4>
+              <div className="grid grid-cols-6 gap-2">
+                {[
+                  { hour: '0-4時', count: 12 },
+                  { hour: '4-8時', count: 23 },
+                  { hour: '8-12時', count: 89 },
+                  { hour: '12-16時', count: 112 },
+                  { hour: '16-20時', count: 98 },
+                  { hour: '20-24時', count: 56 }
+                ].map((slot, index) => (
+                  <div key={index} className="text-center p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">{slot.hour}</p>
+                    <p className="text-lg font-bold">{slot.count}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={selectedKPI === 'cvr'} onOpenChange={() => setSelectedKPI(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>CVR詳細分析</DialogTitle>
+            <DialogDescription>コンバージョン率の推移と要因分析</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">{cvr}%</div>
+                  <p className="text-sm text-gray-500">平均CVR</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">{totalClicks.toLocaleString()}</div>
+                  <p className="text-sm text-gray-500">総クリック数</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">{totalConversions}</div>
+                  <p className="text-sm text-gray-500">総成果数</p>
+                </CardContent>
+              </Card>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-3">デバイス別CVR</h4>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span>PC</span>
+                  <div className="flex items-center space-x-4">
+                    <span className="font-bold">4.2%</span>
+                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                      <div className="bg-primary h-2 rounded-full" style={{ width: '42%' }}></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span>スマートフォン</span>
+                  <div className="flex items-center space-x-4">
+                    <span className="font-bold">3.1%</span>
+                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                      <div className="bg-primary h-2 rounded-full" style={{ width: '31%' }}></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span>タブレット</span>
+                  <div className="flex items-center space-x-4">
+                    <span className="font-bold">3.8%</span>
+                    <div className="w-32 bg-gray-200 rounded-full h-2">
+                      <div className="bg-primary h-2 rounded-full" style={{ width: '38%' }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={selectedKPI === 'approval'} onOpenChange={() => setSelectedKPI(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>承認率詳細分析</DialogTitle>
+            <DialogDescription>案件別・媒体別の承認率状況</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">{avgApprovalRate}%</div>
+                  <p className="text-sm text-gray-500">平均承認率</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">{Math.round(totalConversions * avgApprovalRate / 100)}</div>
+                  <p className="text-sm text-gray-500">承認済み件数</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">{totalConversions - Math.round(totalConversions * avgApprovalRate / 100)}</div>
+                  <p className="text-sm text-gray-500">否認件数</p>
+                </CardContent>
+              </Card>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-3">否認理由内訳</h4>
+              <div className="space-y-2">
+                {[
+                  { reason: '重複申込', count: 15, percentage: 35 },
+                  { reason: '情報不備', count: 10, percentage: 23 },
+                  { reason: 'キャンセル', count: 8, percentage: 19 },
+                  { reason: '不正申込', count: 5, percentage: 12 },
+                  { reason: 'その他', count: 5, percentage: 11 }
+                ].map((item, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span>{item.reason}</span>
+                    <div className="flex items-center space-x-4">
+                      <span className="text-sm text-gray-600">{item.count}件</span>
+                      <span className="font-bold">{item.percentage}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={selectedKPI === 'avgPrice'} onOpenChange={() => setSelectedKPI(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>平均単価詳細分析</DialogTitle>
+            <DialogDescription>案件別の単価分布と推移</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">¥{avgOrderValue.toLocaleString()}</div>
+                  <p className="text-sm text-gray-500">全体平均単価</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">¥15,000</div>
+                  <p className="text-sm text-gray-500">最高単価</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">¥1,500</div>
+                  <p className="text-sm text-gray-500">最低単価</p>
+                </CardContent>
+              </Card>
+            </div>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>案件名</TableHead>
+                    <TableHead className="text-right">平均単価</TableHead>
+                    <TableHead className="text-right">最高単価</TableHead>
+                    <TableHead className="text-right">最低単価</TableHead>
+                    <TableHead className="text-right">件数</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {offerPerformance.map((offer, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">{offer.name}</TableCell>
+                      <TableCell className="text-right font-semibold">
+                        ¥{Math.round(offer.revenue / offer.conversions).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ¥{Math.round(offer.revenue / offer.conversions * 1.5).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        ¥{Math.round(offer.revenue / offer.conversions * 0.7).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-right">{offer.conversions}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={selectedKPI === 'roas'} onOpenChange={() => setSelectedKPI(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>ROAS詳細分析</DialogTitle>
+            <DialogDescription>広告費用対効果の詳細</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">320%</div>
+                  <p className="text-sm text-gray-500">平均ROAS</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">¥{Math.round(totalRevenue / 3.2).toLocaleString()}</div>
+                  <p className="text-sm text-gray-500">広告費用</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="text-2xl font-bold">¥{totalRevenue.toLocaleString()}</div>
+                  <p className="text-sm text-gray-500">広告収益</p>
+                </CardContent>
+              </Card>
+            </div>
+            <div>
+              <h4 className="font-semibold mb-3">媒体別ROAS</h4>
+              <div className="space-y-2">
+                {publisherPerformance.map((publisher, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <span className="font-medium">{publisher.name}</span>
+                    <div className="flex items-center space-x-4">
+                      <span className="text-sm text-gray-600">
+                        費用: ¥{Math.round(publisher.revenue / 3.2).toLocaleString()}
+                      </span>
+                      <span className="font-bold text-green-600">
+                        {Math.round(320 + (index % 3 - 1) * 50)}%
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

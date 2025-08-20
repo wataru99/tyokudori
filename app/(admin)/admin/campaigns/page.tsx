@@ -95,87 +95,115 @@ export default function AdminCampaignsPage() {
   const [activeTab, setActiveTab] = useState('overview')
 
   const fetchCampaigns = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch('http://localhost:4000/api/offers')
-      if (response.ok) {
-        const data = await response.json()
-        // データ構造を調整（実際のAPIレスポンスに合わせて）
-        setCampaigns(data.offers || data)
+    setLoading(true)
+    // モックデータのみを使用
+    setCampaigns([
+      {
+        id: '1',
+        name: '健康サプリメント定期購入キャンペーン',
+        description: '自然由来の健康サプリメント定期購入',
+        category: '美容・健康',
+        advertiserId: 'adv1',
+        advertiser: { name: '株式会社ヘルスケア', email: 'contact@healthcare.com' },
+        status: 'ACTIVE',
+        commissionType: 'CPA',
+        commissionAmount: 3000,
+        requireApproval: true,
+        isPrivate: false,
+        clickCount: 12450,
+        conversionCount: 156,
+        approvalRate: 85.2,
+        createdAt: '2024-01-15T09:00:00Z',
+        expiresAt: '2024-06-30T23:59:59Z',
+        applications: [
+          {
+            id: 'app1',
+            publisherId: 'pub1',
+            publisher: { name: 'メディアA', email: 'media-a@example.com' },
+            status: 'APPROVED',
+            appliedAt: '2024-01-20T10:00:00Z'
+          },
+          {
+            id: 'app2',
+            publisherId: 'pub2',
+            publisher: { name: 'メディアB', email: 'media-b@example.com' },
+            status: 'PENDING',
+            appliedAt: '2024-02-01T14:30:00Z'
+          }
+        ],
+        affiliateLinks: [
+          {
+            id: 'link1',
+            publisherId: 'pub1',
+            publisher: { name: 'メディアA', email: 'media-a@example.com' },
+            trackingCode: 'TRK001ABC',
+            isActive: true,
+            clicks: 8760,
+            conversions: 102,
+            createdAt: '2024-01-22T11:00:00Z'
+          }
+        ]
+      },
+      {
+        id: '2',
+        name: 'クレジットカード新規発行',
+        description: '年会費無料のクレジットカード新規発行',
+        category: '金融',
+        advertiserId: 'adv2',
+        advertiser: { name: '○○銀行', email: 'affiliate@bank.com' },
+        status: 'ACTIVE',
+        commissionType: 'CPA',
+        commissionAmount: 8000,
+        requireApproval: true,
+        isPrivate: false,
+        clickCount: 9850,
+        conversionCount: 98,
+        approvalRate: 78.5,
+        createdAt: '2024-02-01T09:00:00Z',
+        applications: [],
+        affiliateLinks: []
+      },
+      {
+        id: '3',
+        name: '美容クリーム初回限定',
+        description: '高品質美容クリーム初回限定価格',
+        category: '美容・健康',
+        advertiserId: 'adv3',
+        advertiser: { name: 'ビューティー株式会社', email: 'beauty@example.com' },
+        status: 'ACTIVE',
+        commissionType: 'CPA',
+        commissionAmount: 2500,
+        requireApproval: true,
+        isPrivate: false,
+        clickCount: 6420,
+        conversionCount: 89,
+        approvalRate: 91.2,
+        createdAt: '2024-01-25T09:00:00Z',
+        expiresAt: '2024-07-31T23:59:59Z',
+        applications: [
+          {
+            id: 'app3',
+            publisherId: 'pub3',
+            publisher: { name: 'メディアC', email: 'media-c@example.com' },
+            status: 'APPROVED',
+            appliedAt: '2024-02-05T11:00:00Z'
+          }
+        ],
+        affiliateLinks: [
+          {
+            id: 'link2',
+            publisherId: 'pub3',
+            publisher: { name: 'メディアC', email: 'media-c@example.com' },
+            trackingCode: 'TRK002DEF',
+            isActive: true,
+            clicks: 4520,
+            conversions: 67,
+            createdAt: '2024-02-06T12:00:00Z'
+          }
+        ]
       }
-    } catch (error) {
-      console.error('Failed to fetch campaigns:', error)
-      // モックデータ
-      setCampaigns([
-        {
-          id: '1',
-          name: '健康サプリメント定期購入キャンペーン',
-          description: '自然由来の健康サプリメント定期購入',
-          category: '美容・健康',
-          advertiserId: 'adv1',
-          advertiser: { name: '株式会社ヘルスケア', email: 'contact@healthcare.com' },
-          status: 'ACTIVE',
-          commissionType: 'CPA',
-          commissionAmount: 3000,
-          requireApproval: true,
-          isPrivate: false,
-          clickCount: 12450,
-          conversionCount: 156,
-          approvalRate: 85.2,
-          createdAt: '2024-01-15T09:00:00Z',
-          expiresAt: '2024-06-30T23:59:59Z',
-          applications: [
-            {
-              id: 'app1',
-              publisherId: 'pub1',
-              publisher: { name: 'メディアA', email: 'media-a@example.com' },
-              status: 'APPROVED',
-              appliedAt: '2024-01-20T10:00:00Z'
-            },
-            {
-              id: 'app2',
-              publisherId: 'pub2',
-              publisher: { name: 'メディアB', email: 'media-b@example.com' },
-              status: 'PENDING',
-              appliedAt: '2024-02-01T14:30:00Z'
-            }
-          ],
-          affiliateLinks: [
-            {
-              id: 'link1',
-              publisherId: 'pub1',
-              publisher: { name: 'メディアA', email: 'media-a@example.com' },
-              trackingCode: 'TRK001ABC',
-              isActive: true,
-              clicks: 8760,
-              conversions: 102,
-              createdAt: '2024-01-22T11:00:00Z'
-            }
-          ]
-        },
-        {
-          id: '2',
-          name: 'クレジットカード新規発行',
-          description: '年会費無料のクレジットカード新規発行',
-          category: '金融',
-          advertiserId: 'adv2',
-          advertiser: { name: '○○銀行', email: 'affiliate@bank.com' },
-          status: 'ACTIVE',
-          commissionType: 'CPA',
-          commissionAmount: 8000,
-          requireApproval: true,
-          isPrivate: false,
-          clickCount: 9850,
-          conversionCount: 98,
-          approvalRate: 78.5,
-          createdAt: '2024-02-01T09:00:00Z',
-          applications: [],
-          affiliateLinks: []
-        }
-      ])
-    } finally {
-      setLoading(false)
-    }
+    ])
+    setLoading(false)
   }
 
   useEffect(() => {
@@ -216,87 +244,37 @@ export default function AdminCampaignsPage() {
   const handleSaveEdit = async () => {
     if (!editingCampaign || !editData) return
 
-    try {
-      const response = await fetch(`http://localhost:4000/api/offers/${editingCampaign.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editData)
-      })
-
-      if (response.ok) {
-        toast({
-          title: '更新完了',
-          description: 'キャンペーンが正常に更新されました。'
-        })
-        setEditingCampaign(null)
-        setEditData(null)
-        fetchCampaigns()
-      }
-    } catch (error) {
-      toast({
-        title: 'エラー',
-        description: 'キャンペーンの更新に失敗しました。',
-        variant: 'destructive'
-      })
-    }
+    toast({
+      title: '更新完了',
+      description: 'キャンペーンが正常に更新されました。'
+    })
+    setEditingCampaign(null)
+    setEditData(null)
+    fetchCampaigns()
   }
 
   const handleStatusChange = async (campaignId: string, newStatus: string) => {
-    try {
-      const response = await fetch(`http://localhost:4000/api/offers/${campaignId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      })
-
-      if (response.ok) {
-        toast({
-          title: 'ステータス更新',
-          description: `キャンペーンステータスを${newStatus}に変更しました。`
-        })
-        fetchCampaigns()
-      }
-    } catch (error) {
-      toast({
-        title: 'エラー',
-        description: 'ステータスの更新に失敗しました。',
-        variant: 'destructive'
-      })
-    }
+    toast({
+      title: 'ステータス更新',
+      description: `キャンペーンステータスを${newStatus}に変更しました。`
+    })
+    fetchCampaigns()
   }
 
   const handleApplicationAction = async (applicationId: string, action: 'APPROVED' | 'REJECTED') => {
-    try {
-      // API実装時の処理
-      toast({
-        title: `申請${action === 'APPROVED' ? '承認' : '拒否'}`,
-        description: `申請を${action === 'APPROVED' ? '承認' : '拒否'}しました。`
-      })
-      fetchCampaigns()
-    } catch (error) {
-      toast({
-        title: 'エラー',
-        description: '申請処理に失敗しました。',
-        variant: 'destructive'
-      })
-    }
+    toast({
+      title: `申請${action === 'APPROVED' ? '承認' : '拒否'}`,
+      description: `申請を${action === 'APPROVED' ? '承認' : '拒否'}しました。`
+    })
+    fetchCampaigns()
   }
 
   const handleLinkToggle = async (linkId: string, isActive: boolean) => {
-    try {
-      // API実装時の処理
-      toast({
-        title: `リンク${isActive ? '有効化' : '無効化'}`,
-        description: `アフィリエイトリンクを${isActive ? '有効' : '無効'}にしました。`
-      })
-      fetchCampaigns()
-    } catch (error) {
-      toast({
-        title: 'エラー',
-        description: 'リンクの状態変更に失敗しました。',
-        variant: 'destructive'
-      })
-    }
+    toast({
+      title: `リンク${isActive ? '有効化' : '無効化'}`,
+      description: `アフィリエイトリンクを${isActive ? '有効' : '無効'}にしました。`
+    })
+    fetchCampaigns()
   }
 
   const getStatusBadgeColor = (status: string) => {
