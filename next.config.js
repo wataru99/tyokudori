@@ -17,8 +17,8 @@ const nextConfig = {
   
   // Experimental features for better performance
   experimental: {
-    // Optimize CSS
-    optimizeCss: true,
+    // Optimize CSS - disabled due to critters module issue
+    optimizeCss: false,
   },
   
   // Webpack optimizations
