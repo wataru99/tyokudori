@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useToast } from '@/components/ui/use-toast'
+import { useToast } from '@/hooks/use-toast'
 import { 
   User, 
   Bell, 
@@ -29,7 +29,7 @@ import { useNavigation } from '@/hooks/use-navigation'
 export default function PublisherSettingsPage() {
   const { toast } = useToast()
   const { setLoading } = useLoading()
-  const { navigateWithLoading } = useNavigation()
+  const { navigate } = useNavigation()
   const [isSaving, setIsSaving] = useState(false)
   const [isPageLoading, setIsPageLoading] = useState(true)
 
@@ -160,8 +160,9 @@ export default function PublisherSettingsPage() {
                       )}
                     </Button>
                   </div>
-                </div>
-              </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Payment Tab */}
           <TabsContent value="payment">
@@ -229,8 +230,9 @@ export default function PublisherSettingsPage() {
                       )}
                     </Button>
                   </div>
-                </div>
-              </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Notifications Tab */}
           <TabsContent value="notifications">
@@ -312,8 +314,9 @@ export default function PublisherSettingsPage() {
                       )}
                     </Button>
                   </div>
-                </div>
-              </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Security Tab */}
           <TabsContent value="security">
