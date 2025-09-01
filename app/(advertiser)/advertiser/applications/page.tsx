@@ -114,7 +114,7 @@ export default function AdvertiserApplicationsPage() {
   const [customReason, setCustomReason] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
   const { setLoading } = useLoading()
-  const { navigateWithLoading } = useNavigation()
+  const { navigate } = useNavigation()
   const [isPageLoading, setIsPageLoading] = useState(true)
 
   // Initial page loading
