@@ -421,7 +421,7 @@ export default function AdminCampaignsPage() {
             </div>
           </div>
           <div className="overflow-x-auto">
-            {loading ? (
+            {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="flex items-center space-x-3">
                   <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>

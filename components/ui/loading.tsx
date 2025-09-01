@@ -48,6 +48,8 @@ export function PageLoading({ text = 'ページを読み込んでいます...' }
   )
 }
 
+export default PageLoading
+
 export function TableLoading({ columns = 5, rows = 5 }: { columns?: number, rows?: number }) {
   return (
     <div className="w-full">
