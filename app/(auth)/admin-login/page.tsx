@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Shield, Eye, EyeOff, ArrowLeft } from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
 export default function AdminLoginPage() {
   const router = useRouter()
@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-red-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="w-full max-w-[1400px] mx-auto flex items-center justify-center">
       <div className="w-full max-w-md space-y-6">
         {/* ロゴとブランド名 */}
@@ -56,12 +56,12 @@ export default function AdminLoginPage() {
             <span className="text-sm">トップに戻る</span>
           </Link>
           <div className="flex items-center justify-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">T</span>
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+              <span className="text-white font-bold text-xl">T</span>
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">tyokudori</h1>
-              <Badge className="bg-red-100 text-red-800 flex items-center space-x-1 w-fit">
+              <Badge className="bg-blue-50 text-blue-700 border border-blue-200 flex items-center space-x-1 w-fit">
                 <Shield className="h-3 w-3" />
                 <span className="text-xs">管理者ログイン</span>
               </Badge>
@@ -70,7 +70,7 @@ export default function AdminLoginPage() {
         </div>
 
         {/* ログインフォーム */}
-        <Card className="border-red-200">
+        <Card className="bg-white shadow-sm border border-gray-200">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl text-center">管理者ログイン</CardTitle>
             <CardDescription className="text-center">
@@ -90,7 +90,8 @@ export default function AdminLoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="border-red-200 focus:border-red-500"
+                  autoComplete="email"
+                  className="border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 />
               </div>
               <div className="space-y-2">
@@ -105,7 +106,8 @@ export default function AdminLoginPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="border-red-200 focus:border-red-500 pr-10"
+                    autoComplete="current-password"
+                    className="border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 pr-10"
                   />
                   <Button
                     type="button"
@@ -124,7 +126,7 @@ export default function AdminLoginPage() {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-red-600 hover:bg-red-700 text-white"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -184,11 +186,11 @@ export default function AdminLoginPage() {
         </Card>
 
         {/* 注意事項 */}
-        <Card className="bg-red-50 border-red-200">
+        <Card className="bg-blue-50 border-blue-200 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-start space-x-3">
-              <Shield className="h-5 w-5 text-red-600 mt-0.5" />
-              <div className="text-sm text-red-800">
+              <Shield className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div className="text-sm text-blue-800">
                 <p className="font-semibold mb-1">管理者権限について</p>
                 <ul className="text-xs space-y-1">
                   <li>• システム全体の管理・設定が可能です</li>

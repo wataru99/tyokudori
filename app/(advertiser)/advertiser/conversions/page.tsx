@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { PageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
@@ -15,6 +16,8 @@ import { Label } from '@/components/ui/label'
 import { Calendar, Check, X, AlertCircle, Download, Filter, Search } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 import { Input } from '@/components/ui/input'
+import { useLoading } from '@/contexts/loading-context'
+import { useNavigation } from '@/hooks/use-navigation'
 
 type Conversion = {
   id: string
@@ -95,6 +98,8 @@ const rejectionReasons = [
 export default function AdvertiserConversionsPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { setLoading } = useLoading()
+  const { navigateWithLoading } = useNavigation()
   const [conversions, setConversions] = useState<Conversion[]>(mockConversions)
   const [selectedConversions, setSelectedConversions] = useState<string[]>([])
   const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false)
@@ -104,14 +109,22 @@ export default function AdvertiserConversionsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedConversion, setSelectedConversion] = useState<Conversion | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isPageLoading, setIsPageLoading] = useState(true)
+
+  // Initial page loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleConversionClick = (conversion: Conversion) => {
-    setIsLoading(true)
+    setLoading(true)
     setTimeout(() => {
       setSelectedConversion(conversion)
       setIsDetailDialogOpen(true)
-      setIsLoading(false)
+      setLoading(false)
     }, 150)
   }
 
@@ -135,6 +148,7 @@ export default function AdvertiserConversionsPage() {
   }
 
   const handleApprove = async (conversionIds: string[]) => {
+    setLoading(true)
     try {
       // API呼び出し（仮）
       setConversions(prev =>
@@ -156,6 +170,8 @@ export default function AdvertiserConversionsPage() {
         description: '承認処理に失敗しました。',
         variant: 'destructive',
       })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -169,6 +185,7 @@ export default function AdvertiserConversionsPage() {
       return
     }
 
+    setLoading(true)
     try {
       const reason = selectedReason === 'other' ? customReason : selectedReason
       
@@ -195,6 +212,8 @@ export default function AdvertiserConversionsPage() {
         description: '否認処理に失敗しました。',
         variant: 'destructive',
       })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -213,70 +232,62 @@ export default function AdvertiserConversionsPage() {
   const approvedCount = conversions.filter(c => c.status === 'approved').length
   const rejectedCount = conversions.filter(c => c.status === 'rejected').length
 
-  return (
-    <div className="container py-8">
-      {/* Loading Overlay */}
-      {isLoading && (
-        <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 flex items-center space-x-3 shadow-lg">
-            <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-gray-700">読み込み中...</span>
-          </div>
-        </div>
-      )}
+  if (isPageLoading) {
+    return <PageLoading text="成果承認管理を読み込んでいます..." />
+  }
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">成果承認管理</h1>
-        <p className="text-muted-foreground mt-2">
-          発生した成果の承認・否認を行います。
-        </p>
+  return (
+    <div className="w-full px-3 py-3">
+
+      <div className="bg-white rounded shadow-sm border p-2 mb-2">
+        <h1 className="text-sm font-bold">成果承認管理</h1>
       </div>
 
       {/* 統計カード */}
-      <div className="grid gap-4 md:grid-cols-4 mb-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">承認待ち</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
+      <div className="grid gap-2 grid-cols-4 mb-2">
+        <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+            <CardTitle className="text-xs font-medium">承認待ち</CardTitle>
+            <AlertCircle className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">{pendingCount}</div>
+          <CardContent className="p-2 pt-0">
+            <div className="text-sm font-bold whitespace-nowrap">{pendingCount}</div>
             <p className="text-xs text-muted-foreground">
               即時承認をおすすめします
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">承認済み</CardTitle>
-            <Check className="h-4 w-4 text-green-600" />
+        <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+            <CardTitle className="text-xs font-medium">承認済み</CardTitle>
+            <Check className="h-3 w-3 text-green-600" />
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">{approvedCount}</div>
+          <CardContent className="p-2 pt-0">
+            <div className="text-sm font-bold whitespace-nowrap">{approvedCount}</div>
             <p className="text-xs text-muted-foreground">
               今月の承認数
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">否認済み</CardTitle>
-            <X className="h-4 w-4 text-red-600" />
+        <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+            <CardTitle className="text-xs font-medium">否認済み</CardTitle>
+            <X className="h-3 w-3 text-red-600" />
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">{rejectedCount}</div>
+          <CardContent className="p-2 pt-0">
+            <div className="text-sm font-bold whitespace-nowrap">{rejectedCount}</div>
             <p className="text-xs text-muted-foreground">
               今月の否認数
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">承認率</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+        <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+            <CardTitle className="text-xs font-medium">承認率</CardTitle>
+            <Calendar className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">
+          <CardContent className="p-2 pt-0">
+            <div className="text-sm font-bold whitespace-nowrap">
               {approvedCount + rejectedCount > 0
                 ? Math.round((approvedCount / (approvedCount + rejectedCount)) * 100)
                 : 0}%
@@ -289,24 +300,24 @@ export default function AdvertiserConversionsPage() {
       </div>
 
       {/* フィルタとアクション */}
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row gap-4">
+      <Card className="mb-2">
+        <CardHeader className="p-3">
+          <div className="flex flex-col sm:flex-row gap-2">
             <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 text-muted-foreground" />
               <Input
                 placeholder="媒体名、案件名、取引IDで検索"
-                className="pl-9"
+                className="pl-9 h-8 text-sm"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             <Tabs value={filterStatus} onValueChange={(value) => setFilterStatus(value as any)}>
-              <TabsList>
-                <TabsTrigger value="all">すべて</TabsTrigger>
-                <TabsTrigger value="pending">承認待ち</TabsTrigger>
-                <TabsTrigger value="approved">承認済み</TabsTrigger>
-                <TabsTrigger value="rejected">否認済み</TabsTrigger>
+              <TabsList className="h-8">
+                <TabsTrigger value="all" className="text-xs">すべて</TabsTrigger>
+                <TabsTrigger value="pending" className="text-xs">承認待ち</TabsTrigger>
+                <TabsTrigger value="approved" className="text-xs">承認済み</TabsTrigger>
+                <TabsTrigger value="rejected" className="text-xs">否認済み</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -315,15 +326,16 @@ export default function AdvertiserConversionsPage() {
 
       {/* 一括アクション */}
       {selectedConversions.length > 0 && (
-        <Card className="mb-4 border-primary">
-          <CardContent className="flex items-center justify-between py-4">
-            <span className="text-sm">
+        <Card className="mb-2 border-primary">
+          <CardContent className="flex items-center justify-between py-2">
+            <span className="text-xs">
               {selectedConversions.length}件を選択中
             </span>
-            <div className="flex gap-2">
+            <div className="flex gap-1">
               <Button
                 size="sm"
                 onClick={() => handleApprove(selectedConversions)}
+                className="h-6 text-xs"
               >
                 一括承認
               </Button>
@@ -331,6 +343,7 @@ export default function AdvertiserConversionsPage() {
                 size="sm"
                 variant="destructive"
                 onClick={() => setRejectionDialogOpen(true)}
+                className="h-6 text-xs"
               >
                 一括否認
               </Button>
@@ -338,6 +351,7 @@ export default function AdvertiserConversionsPage() {
                 size="sm"
                 variant="outline"
                 onClick={() => setSelectedConversions([])}
+                className="h-6 text-xs"
               >
                 選択解除
               </Button>
@@ -347,13 +361,13 @@ export default function AdvertiserConversionsPage() {
       )}
 
       {/* 成果一覧テーブル */}
-      <Card>
+      <Card className="rounded shadow-sm">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader>
+              <TableHeader className="bg-gray-50">
                 <TableRow>
-                  <TableHead className="w-[50px]">
+                  <TableHead className="w-[30px] py-2">
                     <Checkbox
                       checked={
                         filteredConversions.filter(c => c.status === 'pending').length > 0 &&
@@ -361,17 +375,18 @@ export default function AdvertiserConversionsPage() {
                       }
                       onCheckedChange={handleSelectAll}
                       disabled={filteredConversions.filter(c => c.status === 'pending').length === 0}
+                      className="h-3 w-3"
                     />
                   </TableHead>
-                  <TableHead>成果ID</TableHead>
-                  <TableHead>媒体</TableHead>
-                  <TableHead>案件</TableHead>
-                  <TableHead>取引ID</TableHead>
-                  <TableHead className="text-right">金額</TableHead>
-                  <TableHead className="text-center">数量</TableHead>
-                  <TableHead>発生日時</TableHead>
-                  <TableHead>ステータス</TableHead>
-                  <TableHead className="text-center">アクション</TableHead>
+                  <TableHead className="text-xs py-2">成果ID</TableHead>
+                  <TableHead className="text-xs py-2">媒体</TableHead>
+                  <TableHead className="text-xs py-2">案件</TableHead>
+                  <TableHead className="text-xs py-2">取引ID</TableHead>
+                  <TableHead className="text-right text-xs py-2">金額</TableHead>
+                  <TableHead className="text-center text-xs py-2">数量</TableHead>
+                  <TableHead className="text-xs py-2">発生日時</TableHead>
+                  <TableHead className="text-xs py-2">ステータス</TableHead>
+                  <TableHead className="text-center text-xs py-2">アクション</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -381,35 +396,36 @@ export default function AdvertiserConversionsPage() {
                     className="cursor-pointer hover:bg-blue-50 transition-colors"
                     onClick={() => handleConversionClick(conversion)}
                   >
-                    <TableCell onClick={(e) => e.stopPropagation()}>
+                    <TableCell onClick={(e) => e.stopPropagation()} className="py-2">
                       <Checkbox
                         checked={selectedConversions.includes(conversion.id)}
                         onCheckedChange={(checked) => handleSelectConversion(conversion.id, checked as boolean)}
                         disabled={conversion.status !== 'pending'}
+                        className="h-3 w-3"
                       />
                     </TableCell>
-                    <TableCell className="font-mono text-xs">{conversion.id}</TableCell>
-                    <TableCell>{conversion.publisherName}</TableCell>
-                    <TableCell>{conversion.offerName}</TableCell>
-                    <TableCell className="font-mono text-xs">{conversion.transactionId}</TableCell>
-                    <TableCell className="text-right">¥{conversion.amount.toLocaleString()}</TableCell>
-                    <TableCell className="text-center">{conversion.quantity}</TableCell>
-                    <TableCell className="text-sm">
+                    <TableCell className="font-mono text-xs py-2">{conversion.id}</TableCell>
+                    <TableCell className="text-xs py-2">{conversion.publisherName}</TableCell>
+                    <TableCell className="text-xs py-2">{conversion.offerName}</TableCell>
+                    <TableCell className="font-mono text-xs py-2">{conversion.transactionId}</TableCell>
+                    <TableCell className="text-right text-xs py-2">¥{conversion.amount.toLocaleString()}</TableCell>
+                    <TableCell className="text-center text-xs py-2">{conversion.quantity}</TableCell>
+                    <TableCell className="text-xs py-2">
                       {conversion.createdAt.toLocaleDateString('ja-JP')}
                       <br />
                       <span className="text-xs text-muted-foreground">
                         {conversion.createdAt.toLocaleTimeString('ja-JP')}
                       </span>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-2">
                       {conversion.status === 'pending' && (
-                        <Badge variant="outline">承認待ち</Badge>
+                        <Badge variant="outline" className="text-xs px-2 py-0.5">承認待ち</Badge>
                       )}
                       {conversion.status === 'approved' && (
-                        <Badge className="bg-green-100 text-green-800">承認済み</Badge>
+                        <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs px-2 py-0.5">承認済み</Badge>
                       )}
                       {conversion.status === 'rejected' && (
-                        <Badge variant="destructive">
+                        <Badge className="bg-rose-50 text-rose-700 border-rose-200 text-xs px-2 py-0.5">
                           否認済み
                           {conversion.rejectionReason && (
                             <span className="ml-1">({conversion.rejectionReason})</span>
@@ -417,20 +433,21 @@ export default function AdvertiserConversionsPage() {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
+                    <TableCell onClick={(e) => e.stopPropagation()} className="py-2">
                       {conversion.status === 'pending' && (
-                        <div className="flex gap-2 justify-center">
+                        <div className="flex gap-1 justify-center">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleApprove([conversion.id])}
+                            className="h-6 text-xs px-2"
                           >
                             承認
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            className="text-destructive"
+                            className="text-destructive h-6 text-xs px-2"
                             onClick={() => {
                               setSelectedConversions([conversion.id])
                               setRejectionDialogOpen(true)
@@ -545,7 +562,7 @@ export default function AdvertiserConversionsPage() {
                       <Badge variant="outline">承認待ち</Badge>
                     )}
                     {selectedConversion.status === 'approved' && (
-                      <Badge className="bg-green-100 text-green-800">承認済み</Badge>
+                      <Badge className="bg-emerald-50 text-emerald-700 border-emerald-200">承認済み</Badge>
                     )}
                     {selectedConversion.status === 'rejected' && (
                       <Badge variant="destructive">

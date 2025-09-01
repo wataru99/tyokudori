@@ -53,6 +53,21 @@ interface User {
     priority: string
     createdAt: string
   }>
+  affiliateCampaigns?: Array<{
+    id: string
+    name: string
+    status: 'ACTIVE' | 'PAUSED' | 'DRAFT' | 'EXPIRED'
+    category: string
+    commissionType: 'CPA' | 'CPS' | 'CPC'
+    commissionAmount: number
+    commissionPercent?: number
+    clicks: number
+    conversions: number
+    revenue: number
+    approvalRate: number
+    createdAt: string
+    lastActivityAt: string
+  }>
 }
 
 export default function UserDetailPage() {
@@ -143,6 +158,64 @@ export default function UserDetailPage() {
               status: 'OPEN',
               priority: 'MEDIUM',
               createdAt: '2024-02-18T10:00:00Z'
+            }
+          ],
+          affiliateCampaigns: [
+            {
+              id: 'camp1',
+              name: '健康サプリメント定期購入キャンペーン',
+              status: 'ACTIVE',
+              category: '美容・健康',
+              commissionType: 'CPA',
+              commissionAmount: 3000,
+              clicks: 8760,
+              conversions: 102,
+              revenue: 306000,
+              approvalRate: 89.2,
+              createdAt: '2024-01-22T11:00:00Z',
+              lastActivityAt: '2024-02-20T08:30:00Z'
+            },
+            {
+              id: 'camp2',
+              name: '美容クリーム初回限定',
+              status: 'ACTIVE',
+              category: '美容・健康',
+              commissionType: 'CPA',
+              commissionAmount: 2500,
+              clicks: 4520,
+              conversions: 67,
+              revenue: 167500,
+              approvalRate: 94.3,
+              createdAt: '2024-02-06T12:00:00Z',
+              lastActivityAt: '2024-02-19T15:20:00Z'
+            },
+            {
+              id: 'camp3',
+              name: 'オンライン英会話無料体験',
+              status: 'PAUSED',
+              category: '教育',
+              commissionType: 'CPA',
+              commissionAmount: 1500,
+              clicks: 2340,
+              conversions: 23,
+              revenue: 34500,
+              approvalRate: 78.3,
+              createdAt: '2024-01-15T09:00:00Z',
+              lastActivityAt: '2024-02-10T14:30:00Z'
+            },
+            {
+              id: 'camp4',
+              name: 'クレジットカード新規発行',
+              status: 'EXPIRED',
+              category: '金融',
+              commissionType: 'CPA',
+              commissionAmount: 8000,
+              clicks: 1250,
+              conversions: 8,
+              revenue: 64000,
+              approvalRate: 87.5,
+              createdAt: '2023-12-01T10:00:00Z',
+              lastActivityAt: '2024-01-31T23:59:59Z'
             }
           ]
         },
@@ -368,6 +441,9 @@ export default function UserDetailPage() {
         <TabsList>
           <TabsTrigger value="profile">プロフィール</TabsTrigger>
           <TabsTrigger value="entities">関連エンティティ</TabsTrigger>
+          {user.role === 'PUBLISHER' && user.affiliateCampaigns && user.affiliateCampaigns.length > 0 && (
+            <TabsTrigger value="campaigns">アフィリエイト案件</TabsTrigger>
+          )}
           <TabsTrigger value="activity">管理者アクション</TabsTrigger>
           <TabsTrigger value="tickets">チケット</TabsTrigger>
         </TabsList>
@@ -619,6 +695,149 @@ export default function UserDetailPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* アフィリエイト案件タブ */}
+        {user.role === 'PUBLISHER' && user.affiliateCampaigns && user.affiliateCampaigns.length > 0 && (
+          <TabsContent value="campaigns" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-3 mb-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">総収益</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    ¥{user.affiliateCampaigns.reduce((sum, camp) => sum + camp.revenue, 0).toLocaleString()}
+                  </div>
+                  <p className="text-xs text-muted-foreground">全案件合計</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">総クリック数</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {user.affiliateCampaigns.reduce((sum, camp) => sum + camp.clicks, 0).toLocaleString()}
+                  </div>
+                  <p className="text-xs text-muted-foreground">全案件合計</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">総コンバージョン数</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">
+                    {user.affiliateCampaigns.reduce((sum, camp) => sum + camp.conversions, 0)}
+                  </div>
+                  <p className="text-xs text-muted-foreground">全案件合計</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <FileText className="mr-2 h-5 w-5" />
+                  アフィリエイト案件一覧
+                </CardTitle>
+                <CardDescription>このアフィリエイターが参加している案件</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>案件名</TableHead>
+                      <TableHead>ステータス</TableHead>
+                      <TableHead>カテゴリ</TableHead>
+                      <TableHead>報酬</TableHead>
+                      <TableHead>パフォーマンス</TableHead>
+                      <TableHead>収益</TableHead>
+                      <TableHead>承認率</TableHead>
+                      <TableHead>最終活動日</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {user.affiliateCampaigns.map((campaign) => (
+                      <TableRow key={campaign.id}>
+                        <TableCell>
+                          <div className="font-medium">{campaign.name}</div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            className={
+                              campaign.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                              campaign.status === 'PAUSED' ? 'bg-yellow-100 text-yellow-800' :
+                              campaign.status === 'DRAFT' ? 'bg-gray-100 text-gray-800' :
+                              'bg-red-100 text-red-800'
+                            }
+                          >
+                            {campaign.status === 'ACTIVE' ? 'アクティブ' :
+                             campaign.status === 'PAUSED' ? '一時停止' :
+                             campaign.status === 'DRAFT' ? '下書き' : '期限切れ'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">{campaign.category}</span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div className="font-medium">
+                              {campaign.commissionType === 'CPS' && campaign.commissionPercent 
+                                ? `${campaign.commissionPercent}%` 
+                                : `¥${campaign.commissionAmount.toLocaleString()}`
+                              }
+                            </div>
+                            <div className="text-xs text-gray-500">{campaign.commissionType}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm space-y-1">
+                            <div>
+                              <span className="text-gray-500">クリック:</span>
+                              <span className="font-medium ml-1">{campaign.clicks.toLocaleString()}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">CV:</span>
+                              <span className="font-medium ml-1">{campaign.conversions}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">CVR:</span>
+                              <span className="font-medium ml-1 text-blue-600">
+                                {campaign.clicks > 0 ? ((campaign.conversions / campaign.clicks) * 100).toFixed(2) : '0.00'}%
+                              </span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium text-green-600">
+                            ¥{campaign.revenue.toLocaleString()}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`font-medium ${
+                            campaign.approvalRate >= 90 ? 'text-green-600' :
+                            campaign.approvalRate >= 80 ? 'text-yellow-600' : 'text-red-600'
+                          }`}>
+                            {campaign.approvalRate.toFixed(1)}%
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-gray-600">
+                            {new Date(campaign.lastActivityAt).toLocaleDateString('ja-JP')}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   )

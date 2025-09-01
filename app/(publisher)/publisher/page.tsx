@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import { PageLoading } from '@/components/ui/loading'
+import { useLoading } from '@/contexts/loading-context'
+import { useNavigation } from '@/hooks/use-navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -45,10 +48,23 @@ interface RecentConversion {
 }
 
 export default function PublisherDashboard() {
-  const router = useRouter()
   const pathname = usePathname()
+  const { setLoading } = useLoading()
+  const { navigate } = useNavigation()
   const [selectedCampaign, setSelectedCampaign] = useState<CampaignStats | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // Add a short delay for smoother transition
+    const loadData = async () => {
+      setLoading(true, 'データを読み込んでいます...')
+      await new Promise(resolve => setTimeout(resolve, 300))
+      setIsLoading(false)
+      setLoading(false)
+    }
+    loadData()
+  }, [])
 
   // Mock data
   const campaignStats: CampaignStats[] = [
@@ -117,20 +133,16 @@ export default function PublisherDashboard() {
     }
   ]
 
-  const handleNavigate = (path: string) => {
-    if (pathname === path) return
-    router.push(path)
-  }
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-100 text-green-800'
-      case 'PAUSED': return 'bg-yellow-100 text-yellow-800'
-      case 'ENDED': return 'bg-gray-100 text-gray-800'
-      case 'APPROVED': return 'bg-green-100 text-green-800'
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800'
-      case 'REJECTED': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'ACTIVE': return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      case 'PAUSED': return 'bg-amber-50 text-amber-700 border-amber-200'
+      case 'ENDED': return 'bg-slate-50 text-slate-700 border-slate-200'
+      case 'APPROVED': return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      case 'PENDING': return 'bg-amber-50 text-amber-700 border-amber-200'
+      case 'REJECTED': return 'bg-rose-50 text-rose-700 border-rose-200'
+      default: return 'bg-slate-50 text-slate-700 border-slate-200'
     }
   }
 
@@ -148,75 +160,81 @@ export default function PublisherDashboard() {
   const totalEarnings = campaignStats.reduce((sum, campaign) => sum + campaign.earnings, 0)
   const averageConversionRate = totalClicks > 0 ? (totalConversions / totalClicks * 100).toFixed(2) : '0'
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <PageLoading text="ダッシュボードを読み込んでいます..." />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container max-w-7xl mx-auto px-4 py-6">
+      <div className="w-full px-3 py-3">
         {/* Page Header */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="bg-white rounded shadow-sm border p-2 mb-2">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">アフィリエイターダッシュボード</h1>
-              <p className="text-gray-600 mt-1">
-                成果の状況とパフォーマンスを確認できます
-              </p>
+              <h1 className="text-sm font-bold text-gray-900">アフィリエイターダッシュボード</h1>
             </div>
             <Button 
               className="bg-green-600 hover:bg-green-700 text-white"
-              onClick={() => handleNavigate('/publisher/offers')}
+              onClick={() => navigate('/publisher/offers')}
+              size="sm"
             >
-              <Eye className="mr-2 h-4 w-4" />
+              <Eye className="mr-1 h-3 w-3" />
               案件を探す
             </Button>
           </div>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-4 mb-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">今月のクリック数</CardTitle>
-              <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+        <div className="grid gap-2 grid-cols-4 mb-2">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">今月のクリック数</CardTitle>
+              <MousePointerClick className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">{totalClicks.toLocaleString()}</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">{totalClicks.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                <TrendingUp className="inline h-3 w-3 text-green-600 mr-1" />
+                <TrendingUp className="inline h-3 w-3 text-foreground mr-1" />
                 前月比 +15.3%
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">今月の成果数</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
+          <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">今月の成果数</CardTitle>
+              <Target className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">{totalConversions}</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">{totalConversions}</div>
               <p className="text-xs text-muted-foreground">
                 <span className="text-gray-600">CVR: {averageConversionRate}%</span>
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">今月の報酬</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">今月の報酬</CardTitle>
+              <DollarSign className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">¥{totalEarnings.toLocaleString()}</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">¥{totalEarnings.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                <TrendingUp className="inline h-3 w-3 text-green-600 mr-1" />
+                <TrendingUp className="inline h-3 w-3 text-foreground mr-1" />
                 前月比 +22.5%
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">承認待ち</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+          <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">承認待ち</CardTitle>
+              <Clock className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">
                 {recentConversions.filter(c => c.status === 'PENDING').length}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -230,17 +248,18 @@ export default function PublisherDashboard() {
         </div>
 
         {/* Campaign Performance */}
-        <div className="bg-white rounded-lg shadow-sm border mb-6">
-          <div className="px-6 py-4 border-b border-gray-200">
+        <div className="bg-white rounded shadow-sm border mb-2">
+          <div className="px-3 py-2 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">案件別パフォーマンス</h3>
+              <h3 className="text-sm font-semibold text-gray-900">案件別パフォーマンス</h3>
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => handleNavigate('/publisher/campaigns')}
+                onClick={() => navigate('/publisher/campaigns')}
+                className="h-6 text-xs"
               >
                 詳細レポート
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             </div>
           </div>
@@ -248,12 +267,12 @@ export default function PublisherDashboard() {
             <Table>
               <TableHeader className="bg-gray-50">
                 <TableRow>
-                  <TableHead className="font-semibold text-gray-700">案件名</TableHead>
-                  <TableHead className="font-semibold text-gray-700">クリック数</TableHead>
-                  <TableHead className="font-semibold text-gray-700">成果数</TableHead>
-                  <TableHead className="font-semibold text-gray-700">CVR</TableHead>
-                  <TableHead className="font-semibold text-gray-700">報酬</TableHead>
-                  <TableHead className="font-semibold text-gray-700">ステータス</TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-xs">案件名</TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-xs">クリック数</TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-xs">成果数</TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-xs">CVR</TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-xs">報酬</TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-xs">ステータス</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -266,26 +285,26 @@ export default function PublisherDashboard() {
                       setIsDialogOpen(true)
                     }}
                   >
-                    <TableCell className="py-4">
+                    <TableCell className="py-2">
                       <div>
-                        <div className="font-medium text-gray-900">{campaign.name}</div>
-                        <div className="text-sm text-gray-500">{campaign.advertiserName}</div>
+                        <div className="font-medium text-gray-900 text-xs">{campaign.name}</div>
+                        <div className="text-xs text-gray-500">{campaign.advertiserName}</div>
                       </div>
                     </TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="py-2 text-xs">
                       <div className="text-gray-900">{campaign.clicks.toLocaleString()}</div>
                     </TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="py-2 text-xs">
                       <div className="font-semibold text-gray-900">{campaign.conversions}</div>
                     </TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="py-2 text-xs">
                       <div className="text-gray-900">{campaign.conversionRate}%</div>
                     </TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="py-2 text-xs">
                       <div className="font-semibold text-gray-900">¥{campaign.earnings.toLocaleString()}</div>
                     </TableCell>
-                    <TableCell className="py-4">
-                      <Badge className={`${getStatusBadgeColor(campaign.status)} px-3 py-1`}>
+                    <TableCell className="py-2">
+                      <Badge className={`${getStatusBadgeColor(campaign.status)} px-2 py-0.5 text-xs`}>
                         {campaign.status === 'ACTIVE' ? 'アクティブ' :
                          campaign.status === 'PAUSED' ? '一時停止' : '終了'}
                       </Badge>
@@ -298,17 +317,18 @@ export default function PublisherDashboard() {
         </div>
 
         {/* Recent Conversions */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="px-6 py-4 border-b border-gray-200">
+        <div className="bg-white rounded shadow-sm border">
+          <div className="px-3 py-2 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">最近の成果</h3>
+              <h3 className="text-sm font-semibold text-gray-900">最近の成果</h3>
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => handleNavigate('/publisher/conversions')}
+                onClick={() => navigate('/publisher/conversions')}
+                className="h-6 text-xs"
               >
                 すべて見る
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="ml-1 h-3 w-3" />
               </Button>
             </div>
           </div>
@@ -316,35 +336,35 @@ export default function PublisherDashboard() {
             <Table>
               <TableHeader className="bg-gray-50">
                 <TableRow>
-                  <TableHead className="font-semibold text-gray-700">案件名</TableHead>
-                  <TableHead className="font-semibold text-gray-700">報酬額</TableHead>
-                  <TableHead className="font-semibold text-gray-700">ステータス</TableHead>
-                  <TableHead className="font-semibold text-gray-700">発生日時</TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-xs">案件名</TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-xs">報酬額</TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-xs">ステータス</TableHead>
+                  <TableHead className="font-semibold text-gray-700 text-xs">発生日時</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {recentConversions.map((conversion) => (
                   <TableRow key={conversion.id} className="hover:bg-gray-50">
-                    <TableCell className="py-4">
+                    <TableCell className="py-2 text-xs">
                       <div className="font-medium text-gray-900">{conversion.campaignName}</div>
                     </TableCell>
-                    <TableCell className="py-4">
+                    <TableCell className="py-2 text-xs">
                       <div className="font-semibold text-gray-900">¥{conversion.amount.toLocaleString()}</div>
                     </TableCell>
-                    <TableCell className="py-4">
-                      <Badge className={`${getStatusBadgeColor(conversion.status)} px-3 py-1`}>
+                    <TableCell className="py-2">
+                      <Badge className={`${getStatusBadgeColor(conversion.status)} px-2 py-0.5 text-xs`}>
                         {conversion.status === 'APPROVED' && (
-                          <CheckCircle className="mr-1 h-3 w-3" />
+                          <CheckCircle className="mr-0.5 h-2.5 w-2.5" />
                         )}
                         {conversion.status === 'PENDING' && (
-                          <Clock className="mr-1 h-3 w-3" />
+                          <Clock className="mr-0.5 h-2.5 w-2.5" />
                         )}
                         {conversion.status === 'APPROVED' ? '承認済み' :
                          conversion.status === 'PENDING' ? '承認待ち' : '否認'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="py-4">
-                      <div className="text-sm text-gray-600">{formatDateTime(conversion.createdAt)}</div>
+                    <TableCell className="py-2 text-xs">
+                      <div className="text-gray-600">{formatDateTime(conversion.createdAt)}</div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -429,7 +449,7 @@ export default function PublisherDashboard() {
                     className="flex-1"
                     onClick={() => {
                       setIsDialogOpen(false)
-                      handleNavigate(`/publisher/campaigns/${selectedCampaign.id}/report`)
+                      navigate(`/publisher/campaigns/${selectedCampaign.id}/report`)
                     }}
                   >
                     詳細レポートを見る
@@ -438,7 +458,7 @@ export default function PublisherDashboard() {
                     variant="outline"
                     onClick={() => {
                       setIsDialogOpen(false)
-                      handleNavigate(`/publisher/campaigns/${selectedCampaign.id}/links`)
+                      navigate(`/publisher/campaigns/${selectedCampaign.id}/links`)
                     }}
                   >
                     アフィリエイトリンク

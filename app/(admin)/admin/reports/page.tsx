@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { PageLoading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -64,6 +65,7 @@ const categoryData = [
 
 export default function AdminReportsPage() {
   const { toast } = useToast()
+  const [isLoading, setIsLoading] = useState(false)
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
     from: new Date(2024, 0, 1),
     to: new Date(2024, 0, 7),
@@ -72,6 +74,15 @@ export default function AdminReportsPage() {
   const [selectedOffer, setSelectedOffer] = useState('all')
   const [selectedPublisher, setSelectedPublisher] = useState('all')
   const [selectedKPI, setSelectedKPI] = useState<string | null>(null)
+
+  useEffect(() => {
+    // Initialize data
+    const loadData = async () => {
+      // Remove artificial delay
+      setIsLoading(false)
+    }
+    loadData()
+  }, [])
 
   const handleExportCSV = () => {
     toast({
@@ -90,29 +101,31 @@ export default function AdminReportsPage() {
   const cvr = ((totalConversions / totalClicks) * 100).toFixed(2)
   const avgOrderValue = Math.round(totalRevenue / totalConversions)
 
+  if (isLoading) {
+    return <PageLoading text="レポート・分析を読み込んでいます..." />
+  }
+
   return (
-    <div className="py-6">
+    <div className="min-h-screen bg-gray-50">
+    <div className="w-full px-3 py-3">
       {/* Page Header */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+      <div className="bg-white rounded shadow-sm border p-2 mb-2">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">レポート・分析</h1>
-          <p className="text-gray-600 mt-1">
-            アフィリエイトの成果データを分析し、ビジネスインサイトを得ることができます
-          </p>
+          <h1 className="text-sm font-bold text-gray-900">レポート・分析</h1>
         </div>
       </div>
 
       {/* フィルタセクション */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>レポート設定</CardTitle>
+      <Card className="mb-2">
+        <CardHeader className="p-3">
+          <CardTitle className="text-sm">レポート設定</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
+        <CardContent className="p-3">
+          <div className="grid gap-2 md:grid-cols-4">
             <div>
-              <label className="text-sm font-medium mb-2 block">期間</label>
+              <label className="text-xs font-medium mb-1 block">期間</label>
               <Select defaultValue="7days">
-                <SelectTrigger>
+                <SelectTrigger className="h-8 text-xs">
                   <SelectValue placeholder="期間を選択" />
                 </SelectTrigger>
                 <SelectContent>
@@ -125,9 +138,9 @@ export default function AdminReportsPage() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">集計単位</label>
+              <label className="text-xs font-medium mb-1 block">集計単位</label>
               <Select value={groupBy} onValueChange={setGroupBy}>
-                <SelectTrigger>
+                <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -138,9 +151,9 @@ export default function AdminReportsPage() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">案件</label>
+              <label className="text-xs font-medium mb-1 block">案件</label>
               <Select value={selectedOffer} onValueChange={setSelectedOffer}>
-                <SelectTrigger>
+                <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -151,9 +164,9 @@ export default function AdminReportsPage() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">媒体</label>
+              <label className="text-xs font-medium mb-1 block">媒体</label>
               <Select value={selectedPublisher} onValueChange={setSelectedPublisher}>
-                <SelectTrigger>
+                <SelectTrigger className="h-8 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -164,9 +177,9 @@ export default function AdminReportsPage() {
               </Select>
             </div>
           </div>
-          <div className="mt-4 flex justify-end">
-            <Button onClick={handleExportCSV} variant="outline">
-              <Download className="mr-2 h-4 w-4" />
+          <div className="mt-2 flex justify-end">
+            <Button onClick={handleExportCSV} variant="outline" size="sm" className="text-xs h-7">
+              <Download className="mr-1 h-3 w-3" />
               CSVエクスポート
             </Button>
           </div>
@@ -174,17 +187,17 @@ export default function AdminReportsPage() {
       </Card>
 
       {/* KPIカード */}
-      <div className="grid gap-4 md:grid-cols-6 mb-6">
+      <div className="grid gap-2 grid-cols-6 mb-2">
         <Card 
-          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+          className="cursor-pointer hover:shadow-md transition-shadow duration-150"
           onClick={() => setSelectedKPI('revenue')}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">総売上</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+            <CardTitle className="text-xs font-medium">総売上</CardTitle>
+            <DollarSign className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">¥{totalRevenue.toLocaleString()}</div>
+          <CardContent className="p-2 pt-0">
+            <div className="text-sm font-bold">¥{totalRevenue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               <TrendingUp className="inline h-3 w-3 text-green-600 mr-1" />
               前期比 +12.5%
@@ -192,15 +205,15 @@ export default function AdminReportsPage() {
           </CardContent>
         </Card>
         <Card
-          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+          className="cursor-pointer hover:shadow-md transition-shadow duration-150"
           onClick={() => setSelectedKPI('conversions')}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">成果件数</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+            <CardTitle className="text-xs font-medium">成果件数</CardTitle>
+            <ShoppingCart className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">{totalConversions}</div>
+          <CardContent className="p-2 pt-0">
+            <div className="text-sm font-bold">{totalConversions}</div>
             <p className="text-xs text-muted-foreground">
               <TrendingUp className="inline h-3 w-3 text-green-600 mr-1" />
               前期比 +8.3%
@@ -208,15 +221,15 @@ export default function AdminReportsPage() {
           </CardContent>
         </Card>
         <Card
-          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+          className="cursor-pointer hover:shadow-md transition-shadow duration-150"
           onClick={() => setSelectedKPI('cvr')}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">CVR</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+            <CardTitle className="text-xs font-medium">CVR</CardTitle>
+            <Target className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">{cvr}%</div>
+          <CardContent className="p-2 pt-0">
+            <div className="text-sm font-bold">{cvr}%</div>
             <p className="text-xs text-muted-foreground">
               <TrendingDown className="inline h-3 w-3 text-red-600 mr-1" />
               前期比 -0.3%
@@ -224,15 +237,15 @@ export default function AdminReportsPage() {
           </CardContent>
         </Card>
         <Card
-          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+          className="cursor-pointer hover:shadow-md transition-shadow duration-150"
           onClick={() => setSelectedKPI('approval')}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">承認率</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+            <CardTitle className="text-xs font-medium">承認率</CardTitle>
+            <Users className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">{avgApprovalRate}%</div>
+          <CardContent className="p-2 pt-0">
+            <div className="text-sm font-bold">{avgApprovalRate}%</div>
             <p className="text-xs text-muted-foreground">
               <TrendingUp className="inline h-3 w-3 text-green-600 mr-1" />
               前期比 +2.1%
@@ -240,15 +253,15 @@ export default function AdminReportsPage() {
           </CardContent>
         </Card>
         <Card
-          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+          className="cursor-pointer hover:shadow-md transition-shadow duration-150"
           onClick={() => setSelectedKPI('avgPrice')}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">平均単価</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+            <CardTitle className="text-xs font-medium">平均単価</CardTitle>
+            <DollarSign className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">¥{avgOrderValue.toLocaleString()}</div>
+          <CardContent className="p-2 pt-0">
+            <div className="text-sm font-bold">¥{avgOrderValue.toLocaleString()}</div>
             <p className="text-xs text-muted-foreground">
               <TrendingUp className="inline h-3 w-3 text-green-600 mr-1" />
               前期比 +5.7%
@@ -256,15 +269,15 @@ export default function AdminReportsPage() {
           </CardContent>
         </Card>
         <Card
-          className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+          className="cursor-pointer hover:shadow-md transition-shadow duration-150"
           onClick={() => setSelectedKPI('roas')}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">ROAS</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+            <CardTitle className="text-xs font-medium">ROAS</CardTitle>
+            <Target className="h-3 w-3 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">320%</div>
+          <CardContent className="p-2 pt-0">
+            <div className="text-sm font-bold">320%</div>
             <p className="text-xs text-muted-foreground">
               <TrendingUp className="inline h-3 w-3 text-green-600 mr-1" />
               前期比 +15.2%
@@ -274,23 +287,23 @@ export default function AdminReportsPage() {
       </div>
 
       {/* グラフセクション */}
-      <Tabs defaultValue="trend" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="trend">トレンド分析</TabsTrigger>
-          <TabsTrigger value="offer">案件別分析</TabsTrigger>
-          <TabsTrigger value="publisher">媒体別分析</TabsTrigger>
-          <TabsTrigger value="category">カテゴリ分析</TabsTrigger>
+      <Tabs defaultValue="trend" className="space-y-2">
+        <TabsList className="h-8">
+          <TabsTrigger value="trend" className="text-xs px-3 py-1">トレンド分析</TabsTrigger>
+          <TabsTrigger value="offer" className="text-xs px-3 py-1">案件別分析</TabsTrigger>
+          <TabsTrigger value="publisher" className="text-xs px-3 py-1">媒体別分析</TabsTrigger>
+          <TabsTrigger value="category" className="text-xs px-3 py-1">カテゴリ分析</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="trend" className="space-y-4">
+        <TabsContent value="trend" className="space-y-2">
           <Card>
-            <CardHeader>
-              <CardTitle>売上・成果推移</CardTitle>
-              <CardDescription>
+            <CardHeader className="p-3">
+              <CardTitle className="text-sm">売上・成果推移</CardTitle>
+              <CardDescription className="text-xs">
                 日別の売上高と成果件数の推移を表示しています
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3">
               <div className="space-y-4">
                 <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg border-2 border-dashed">
                   <div className="text-center">
@@ -301,25 +314,25 @@ export default function AdminReportsPage() {
                 
                 <div className="overflow-x-auto">
                   <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-gray-50">
                       <TableRow>
-                        <TableHead>日付</TableHead>
-                        <TableHead className="text-right">クリック数</TableHead>
-                        <TableHead className="text-right">成果数</TableHead>
-                        <TableHead className="text-right">CVR</TableHead>
-                        <TableHead className="text-right">売上</TableHead>
-                        <TableHead className="text-right">承認率</TableHead>
+                        <TableHead className="font-medium text-gray-700 text-xs py-1">日付</TableHead>
+                        <TableHead className="font-medium text-gray-700 text-xs py-1 text-right">クリック数</TableHead>
+                        <TableHead className="font-medium text-gray-700 text-xs py-1 text-right">成果数</TableHead>
+                        <TableHead className="font-medium text-gray-700 text-xs py-1 text-right">CVR</TableHead>
+                        <TableHead className="font-medium text-gray-700 text-xs py-1 text-right">売上</TableHead>
+                        <TableHead className="font-medium text-gray-700 text-xs py-1 text-right">承認率</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {dailyData.map((day, index) => (
-                        <TableRow key={index}>
-                          <TableCell>{day.date}</TableCell>
-                          <TableCell className="text-right">{day.clicks.toLocaleString()}</TableCell>
-                          <TableCell className="text-right">{day.conversions}</TableCell>
-                          <TableCell className="text-right">{((day.conversions / day.clicks) * 100).toFixed(2)}%</TableCell>
-                          <TableCell className="text-right font-semibold">¥{day.revenue.toLocaleString()}</TableCell>
-                          <TableCell className="text-right">{day.approvalRate}%</TableCell>
+                        <TableRow key={index} className="hover:bg-blue-50">
+                          <TableCell className="text-xs py-1">{day.date}</TableCell>
+                          <TableCell className="text-xs py-1 text-right">{day.clicks.toLocaleString()}</TableCell>
+                          <TableCell className="text-xs py-1 text-right">{day.conversions}</TableCell>
+                          <TableCell className="text-xs py-1 text-right">{((day.conversions / day.clicks) * 100).toFixed(2)}%</TableCell>
+                          <TableCell className="text-xs py-1 text-right font-semibold text-green-600">¥{day.revenue.toLocaleString()}</TableCell>
+                          <TableCell className="text-xs py-1 text-right">{day.approvalRate}%</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -330,15 +343,15 @@ export default function AdminReportsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="offer" className="space-y-4">
+        <TabsContent value="offer" className="space-y-2">
           <Card>
-            <CardHeader>
-              <CardTitle>案件別パフォーマンス</CardTitle>
-              <CardDescription>
+            <CardHeader className="p-3">
+              <CardTitle className="text-sm">案件別パフォーマンス</CardTitle>
+              <CardDescription className="text-xs">
                 各案件の売上高と成果指標を比較できます
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3">
               <div className="space-y-4">
                 <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg border-2 border-dashed">
                   <div className="text-center">
@@ -349,25 +362,25 @@ export default function AdminReportsPage() {
                 
                 <div className="overflow-x-auto">
                   <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-gray-50">
                       <TableRow>
-                        <TableHead>案件名</TableHead>
-                        <TableHead className="text-right">売上</TableHead>
-                        <TableHead className="text-right">成果数</TableHead>
-                        <TableHead className="text-right">CTR</TableHead>
-                        <TableHead className="text-right">CVR</TableHead>
-                        <TableHead className="text-right">平均単価</TableHead>
+                        <TableHead className="font-medium text-gray-700 text-xs py-1">案件名</TableHead>
+                        <TableHead className="font-medium text-gray-700 text-xs py-1 text-right">売上</TableHead>
+                        <TableHead className="font-medium text-gray-700 text-xs py-1 text-right">成果数</TableHead>
+                        <TableHead className="font-medium text-gray-700 text-xs py-1 text-right">CTR</TableHead>
+                        <TableHead className="font-medium text-gray-700 text-xs py-1 text-right">CVR</TableHead>
+                        <TableHead className="font-medium text-gray-700 text-xs py-1 text-right">平均単価</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {offerPerformance.map((offer, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">{offer.name}</TableCell>
-                          <TableCell className="text-right font-semibold">¥{offer.revenue.toLocaleString()}</TableCell>
-                          <TableCell className="text-right">{offer.conversions}</TableCell>
-                          <TableCell className="text-right">{offer.ctr}%</TableCell>
-                          <TableCell className="text-right">{offer.cvr}%</TableCell>
-                          <TableCell className="text-right">¥{Math.round(offer.revenue / offer.conversions).toLocaleString()}</TableCell>
+                        <TableRow key={index} className="hover:bg-blue-50">
+                          <TableCell className="font-medium text-xs py-1">{offer.name}</TableCell>
+                          <TableCell className="text-xs py-1 text-right font-semibold text-green-600">¥{offer.revenue.toLocaleString()}</TableCell>
+                          <TableCell className="text-xs py-1 text-right">{offer.conversions}</TableCell>
+                          <TableCell className="text-xs py-1 text-right">{offer.ctr}%</TableCell>
+                          <TableCell className="text-xs py-1 text-right">{offer.cvr}%</TableCell>
+                          <TableCell className="text-xs py-1 text-right">¥{Math.round(offer.revenue / offer.conversions).toLocaleString()}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -378,29 +391,29 @@ export default function AdminReportsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="publisher" className="space-y-4">
+        <TabsContent value="publisher" className="space-y-2">
           <Card>
-            <CardHeader>
-              <CardTitle>媒体別パフォーマンス</CardTitle>
-              <CardDescription>
+            <CardHeader className="p-3">
+              <CardTitle className="text-sm">媒体別パフォーマンス</CardTitle>
+              <CardDescription className="text-xs">
                 各媒体の売上貢献度と承認率を確認できます
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3">
               <div className="space-y-4">
                 {publisherPerformance.map((publisher, index) => (
-                  <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-2 border rounded">
                     <div>
-                      <h4 className="font-medium">{publisher.name}</h4>
-                      <p className="text-sm text-muted-foreground">
+                      <h4 className="font-medium text-xs">{publisher.name}</h4>
+                      <p className="text-xs text-muted-foreground">
                         成果: {publisher.conversions}件 | 承認率: {publisher.approvalRate}%
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-semibold">¥{publisher.revenue.toLocaleString()}</p>
-                      <div className="w-32 bg-gray-200 rounded-full h-2.5 mt-2">
+                      <p className="text-sm font-semibold text-green-600">¥{publisher.revenue.toLocaleString()}</p>
+                      <div className="w-24 bg-gray-200 rounded-full h-1.5 mt-1">
                         <div
-                          className="bg-primary h-2.5 rounded-full"
+                          className="bg-primary h-1.5 rounded-full"
                           style={{ width: `${(publisher.revenue / 380000) * 100}%` }}
                         ></div>
                       </div>
@@ -412,15 +425,15 @@ export default function AdminReportsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="category" className="space-y-4">
+        <TabsContent value="category" className="space-y-2">
           <Card>
-            <CardHeader>
-              <CardTitle>カテゴリ別売上構成</CardTitle>
-              <CardDescription>
+            <CardHeader className="p-3">
+              <CardTitle className="text-sm">カテゴリ別売上構成</CardTitle>
+              <CardDescription className="text-xs">
                 カテゴリごとの売上構成比を円グラフで表示します
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-3">
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg border-2 border-dashed">
@@ -516,7 +529,7 @@ export default function AdminReportsPage() {
       </Dialog>
 
       <Dialog open={selectedKPI === 'conversions'} onOpenChange={() => setSelectedKPI(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>成果件数詳細分析</DialogTitle>
             <DialogDescription>期間内の成果発生状況</DialogDescription>
@@ -787,6 +800,7 @@ export default function AdminReportsPage() {
           </div>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   )
 }

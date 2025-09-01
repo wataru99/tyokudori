@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { PageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -17,7 +18,9 @@ import {
   BarChart3,
   Eye
 } from 'lucide-react'
-import { useToast } from '@/components/ui/use-toast'
+import { useToast } from '@/hooks/use-toast'
+import { useLoading } from '@/contexts/loading-context'
+import { useNavigation } from '@/hooks/use-navigation'
 
 interface AffiliateLink {
   id: string
@@ -38,8 +41,18 @@ interface AffiliateLink {
 export default function PublisherLinksPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { setLoading } = useLoading()
+  const { navigateWithLoading } = useNavigation()
   const [selectedLink, setSelectedLink] = useState<AffiliateLink | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isPageLoading, setIsPageLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Mock data
   const affiliateLinks: AffiliateLink[] = [
@@ -126,10 +139,10 @@ export default function PublisherLinksPage() {
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-100 text-green-800'
-      case 'PAUSED': return 'bg-yellow-100 text-yellow-800'
-      case 'EXPIRED': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'ACTIVE': return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      case 'PAUSED': return 'bg-amber-50 text-amber-700 border-amber-200'
+      case 'EXPIRED': return 'bg-slate-50 text-slate-700 border-slate-200'
+      default: return 'bg-slate-50 text-slate-700 border-slate-200'
     }
   }
 
@@ -147,75 +160,77 @@ export default function PublisherLinksPage() {
   const totalEarnings = filteredLinks.reduce((sum, link) => sum + link.earnings, 0)
   const averageConversionRate = totalClicks > 0 ? (totalConversions / totalClicks * 100).toFixed(2) : '0'
 
+  if (isPageLoading) {
+    return <PageLoading text="アフィリエイトリンクを読み込んでいます..." />
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container max-w-7xl mx-auto px-4 py-6">
+      <div className="w-full px-3 py-3">
         {/* Page Header */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="bg-white rounded shadow-sm border p-2 mb-2">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-bold text-gray-900">アフィリエイトリンク管理</h1>
-              <p className="text-gray-600 mt-1">
-                生成したアフィリエイトリンクの管理とパフォーマンスを確認できます
-              </p>
+              <h1 className="text-sm font-bold text-gray-900">アフィリエイトリンク管理</h1>
             </div>
             <Button 
-              className="bg-green-600 hover:bg-green-700 text-white"
-              onClick={() => router.push('/publisher/offers')}
+              className="bg-green-600 hover:bg-green-700 text-white h-6 text-xs"
+              onClick={() => navigateWithLoading('/publisher/offers')}
+              size="sm"
             >
-              <LinkIcon className="mr-2 h-4 w-4" />
+              <LinkIcon className="mr-1 h-3 w-3" />
               新しいリンクを作成
             </Button>
           </div>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-4 mb-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">総クリック数</CardTitle>
-              <MousePointerClick className="h-4 w-4 text-muted-foreground" />
+        <div className="grid gap-2 grid-cols-4 mb-2">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">総クリック数</CardTitle>
+              <MousePointerClick className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">{totalClicks.toLocaleString()}</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">{totalClicks.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                <TrendingUp className="inline h-3 w-3 text-green-600 mr-1" />
+                <TrendingUp className="inline h-3 w-3 text-foreground mr-1" />
                 前月比 +18.5%
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">総成果数</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">総成果数</CardTitle>
+              <BarChart3 className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">{totalConversions}</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">{totalConversions}</div>
               <p className="text-xs text-muted-foreground">
                 CVR: {averageConversionRate}%
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">合計報酬</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">合計報酬</CardTitle>
+              <TrendingUp className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">¥{totalEarnings.toLocaleString()}</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">¥{totalEarnings.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                <TrendingUp className="inline h-3 w-3 text-green-600 mr-1" />
+                <TrendingUp className="inline h-3 w-3 text-foreground mr-1" />
                 前月比 +25.3%
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">アクティブリンク</CardTitle>
-              <LinkIcon className="h-4 w-4 text-muted-foreground" />
+          <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">アクティブリンク</CardTitle>
+              <LinkIcon className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">
                 {affiliateLinks.filter(link => link.status === 'ACTIVE').length}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -226,42 +241,42 @@ export default function PublisherLinksPage() {
         </div>
 
         {/* Search */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-lg">リンクを検索</CardTitle>
+        <Card className="mb-2">
+          <CardHeader className="p-3">
+            <CardTitle className="text-sm">リンクを検索</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3 pt-0">
             <Input
               placeholder="案件名、広告主名、リンクコードで検索..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-md"
+              className="max-w-md h-8 text-sm"
             />
           </CardContent>
         </Card>
 
         {/* Links Table */}
         <Card>
-          <CardHeader>
+          <CardHeader className="p-3">
             <div className="flex items-center justify-between">
-              <CardTitle>アフィリエイトリンク一覧</CardTitle>
-              <div className="text-sm text-gray-500">
+              <CardTitle className="text-sm">アフィリエイトリンク一覧</CardTitle>
+              <div className="text-xs text-gray-500">
                 {filteredLinks.length} 件のリンク
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-gray-50">
                   <TableRow>
-                    <TableHead>案件名</TableHead>
-                    <TableHead>リンク</TableHead>
-                    <TableHead>クリック数</TableHead>
-                    <TableHead>成果</TableHead>
-                    <TableHead>報酬</TableHead>
-                    <TableHead>ステータス</TableHead>
-                    <TableHead>アクション</TableHead>
+                    <TableHead className="text-xs">案件名</TableHead>
+                    <TableHead className="text-xs">リンク</TableHead>
+                    <TableHead className="text-xs">クリック数</TableHead>
+                    <TableHead className="text-xs">成果</TableHead>
+                    <TableHead className="text-xs">報酬</TableHead>
+                    <TableHead className="text-xs">ステータス</TableHead>
+                    <TableHead className="text-xs">アクション</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -271,63 +286,73 @@ export default function PublisherLinksPage() {
                       className="cursor-pointer hover:bg-gray-50 transition-colors"
                       onClick={() => setSelectedLink(link)}
                     >
-                      <TableCell>
+                      <TableCell className="py-2">
                         <div>
-                          <div className="font-medium">{link.offerName}</div>
-                          <div className="text-sm text-gray-500">{link.advertiserName}</div>
+                          <div className="font-medium text-xs">{link.offerName}</div>
+                          <div className="text-xs text-gray-500">{link.advertiserName}</div>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <code className="text-sm bg-gray-100 px-2 py-1 rounded">
+                      <TableCell className="py-2">
+                        <div className="flex items-center space-x-1">
+                          <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">
                             {link.shortCode}
                           </code>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleCopyLink(link.fullUrl)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleCopyLink(link.fullUrl)
+                            }}
+                            className="h-6 w-6 p-0"
                           >
-                            <Copy className="h-4 w-4" />
+                            <Copy className="h-3 w-3" />
                           </Button>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{link.clicks.toLocaleString()}</div>
+                      <TableCell className="py-2">
+                        <div className="font-medium text-xs">{link.clicks.toLocaleString()}</div>
                         {link.lastClick && (
                           <div className="text-xs text-gray-500">
                             最終: {formatDate(link.lastClick)}
                           </div>
                         )}
                       </TableCell>
-                      <TableCell>
-                        <div className="font-medium">{link.conversions}</div>
+                      <TableCell className="py-2">
+                        <div className="font-medium text-xs">{link.conversions}</div>
                         <div className="text-xs text-gray-500">CVR: {link.conversionRate}%</div>
                       </TableCell>
-                      <TableCell>
-                        <div className="font-semibold">¥{link.earnings.toLocaleString()}</div>
+                      <TableCell className="py-2">
+                        <div className="font-semibold text-xs">¥{link.earnings.toLocaleString()}</div>
                       </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusBadgeColor(link.status)}>
+                      <TableCell className="py-2">
+                        <Badge className={`${getStatusBadgeColor(link.status)} text-xs px-2 py-0.5`}>
                           {link.status === 'ACTIVE' ? 'アクティブ' :
                            link.status === 'PAUSED' ? '一時停止' : '期限切れ'}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
+                      <TableCell className="py-2">
+                        <div className="flex items-center space-x-1">
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleViewDetails(link)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleViewDetails(link)
+                            }}
+                            className="h-6 w-6 p-0"
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-3 w-3" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             asChild
+                            className="h-6 w-6 p-0"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             <a href={link.fullUrl} target="_blank" rel="noopener noreferrer">
-                              <ExternalLink className="h-4 w-4" />
+                              <ExternalLink className="h-3 w-3" />
                             </a>
                           </Button>
                         </div>

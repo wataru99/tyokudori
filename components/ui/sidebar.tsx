@@ -2,6 +2,8 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useNavigation } from '@/hooks/use-navigation'
+import { useNavigation as useNav } from '@/providers/navigation-provider'
 import { 
   LayoutDashboard, 
   Megaphone, 
@@ -11,7 +13,9 @@ import {
   Users,
   BarChart3,
   Mail,
-  MessageSquare
+  MessageSquare,
+  UserCheck,
+  Building2
 } from 'lucide-react'
 
 interface NavItem {
@@ -27,13 +31,16 @@ interface SidebarProps {
 export function Sidebar({ role }: SidebarProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const { navigate } = useNavigation()
+  const { setIsNavigating } = useNav()
 
   const getNavItems = (): NavItem[] => {
     switch (role) {
       case 'admin':
         return [
           { title: 'ダッシュボード', href: '/admin', icon: LayoutDashboard },
-          { title: 'ユーザー管理', href: '/admin/users', icon: Users },
+          { title: 'アフィリエイター管理', href: '/admin/publishers', icon: UserCheck },
+          { title: '広告主管理', href: '/admin/advertisers', icon: Building2 },
           { title: '案件管理', href: '/admin/campaigns', icon: Megaphone },
           { title: 'レポート', href: '/admin/reports', icon: BarChart3 },
           { title: 'お問い合わせ管理', href: '/admin/inquiries', icon: MessageSquare },
@@ -64,14 +71,14 @@ export function Sidebar({ role }: SidebarProps) {
 
   const handleNavigate = (href: string) => {
     if (pathname === href) return
-    router.push(href)
+    navigate(href)
   }
 
   const navItems = getNavItems()
 
   return (
-    <aside className="w-56 bg-card border-r border-border min-h-screen flex-shrink-0">
-        <nav className="p-4 space-y-1">
+    <aside className="w-48 bg-card border-r border-border min-h-screen flex-shrink-0">
+        <nav className="p-3 space-y-0.5">
           {navItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
@@ -81,13 +88,13 @@ export function Sidebar({ role }: SidebarProps) {
                 key={item.href}
                 onClick={() => handleNavigate(item.href)}
                 className={cn(
-                  "w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 whitespace-nowrap",
+                  "w-full flex items-center px-2 py-1.5 text-xs font-medium rounded-md transition-colors duration-150 whitespace-nowrap",
                   isActive 
                     ? "bg-primary text-primary-foreground shadow-sm" 
                     : "text-muted-foreground hover:bg-secondary hover:text-foreground"
                 )}
               >
-                <Icon className="mr-2 h-4 w-4 flex-shrink-0" />
+                <Icon className="mr-2 h-3 w-3 flex-shrink-0" />
                 <span className="whitespace-nowrap">{item.title}</span>
               </button>
             )

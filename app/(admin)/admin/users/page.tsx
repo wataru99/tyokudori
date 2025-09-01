@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { PageLoading } from '@/components/ui/loading'
+import { useLoading } from '@/contexts/loading-context'
+import { useNavigation } from '@/hooks/use-navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -15,7 +18,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 
 interface User {
   id: string
@@ -30,7 +32,9 @@ interface User {
 }
 
 export default function AdminUsersPage() {
-  const router = useRouter()
+  const { setLoading } = useLoading()
+  const { navigate } = useNavigation()
+  const [isLoading, setIsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -39,7 +43,16 @@ export default function AdminUsersPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchUsers()
+    // Simulate loading delay
+    const loadData = async () => {
+      setLoading(true, 'データを読み込んでいます...')
+      // Add a short delay for smoother transition
+      await new Promise(resolve => setTimeout(resolve, 300))
+      setIsLoading(false)
+      setLoading(false)
+      fetchUsers()
+    }
+    loadData()
   }, [])
 
   const fetchUsers = async () => {
@@ -131,8 +144,9 @@ export default function AdminUsersPage() {
     return new Date(dateString).toLocaleDateString('ja-JP')
   }
 
-  const handleNavigate = (path: string) => {
-    router.push(path)
+
+  if (isLoading) {
+    return <PageLoading text="ユーザー管理を読み込んでいます..." />
   }
 
   return (
@@ -241,7 +255,7 @@ export default function AdminUsersPage() {
                     <TableRow 
                       key={user.id}
                       className="cursor-pointer hover:bg-gray-50 transition-colors"
-                      onClick={() => handleNavigate(`/admin/users/${user.id}`)}
+                      onClick={() => navigate(`/admin/users/${user.id}`)}
                     >
                       <TableCell>
                         <div>
@@ -275,7 +289,7 @@ export default function AdminUsersPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleNavigate(`/admin/users/${user.id}`)}>
+                            <DropdownMenuItem onClick={() => navigate(`/admin/users/${user.id}`)}>
                               <Eye className="mr-2 h-4 w-4" />
                               詳細を見る
                             </DropdownMenuItem>

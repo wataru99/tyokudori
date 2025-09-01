@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -10,10 +10,12 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Briefcase, Eye, EyeOff, ArrowLeft, Building2, User, Mail, Phone } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
+import PageLoading from '@/components/ui/loading'
 
 export default function AdvertiserRegisterPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const [isPageLoading, setIsPageLoading] = useState(true)
   const [formData, setFormData] = useState({
     companyName: '',
     representativeName: '',
@@ -26,6 +28,14 @@ export default function AdvertiserRegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    // Simulate loading
+    const timer = setTimeout(() => {
+      setIsPageLoading(false)
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -75,6 +85,10 @@ export default function AdvertiserRegisterPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  if (isPageLoading) {
+    return <PageLoading text="登録ページを読み込んでいます..." />
   }
 
   return (

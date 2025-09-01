@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { PageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -22,20 +23,38 @@ import {
   Building,
   Globe
 } from 'lucide-react'
+import { useLoading } from '@/contexts/loading-context'
+import { useNavigation } from '@/hooks/use-navigation'
 
 export default function PublisherSettingsPage() {
   const { toast } = useToast()
+  const { setLoading } = useLoading()
+  const { navigateWithLoading } = useNavigation()
   const [isSaving, setIsSaving] = useState(false)
+  const [isPageLoading, setIsPageLoading] = useState(true)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleSave = () => {
     setIsSaving(true)
+    setLoading(true)
     setTimeout(() => {
       toast({
         title: "設定を保存しました",
         description: "変更内容が正常に保存されました。",
       })
       setIsSaving(false)
-    }, 1000)
+      setLoading(false)
+    }, 1500)
+  }
+
+  if (isPageLoading) {
+    return <PageLoading text="設定を読み込んでいます..." />
   }
 
   return (
@@ -115,13 +134,23 @@ export default function PublisherSettingsPage() {
                   </Select>
                 </div>
 
-                <Button onClick={handleSave} disabled={isSaving}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {isSaving ? '保存中...' : '変更を保存'}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  <div className="flex justify-end">
+                    <Button onClick={handleSave} disabled={isSaving} size="sm" className="h-7">
+                      {isSaving ? (
+                        <span className="flex items-center text-xs">
+                          <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></span>
+                          保存中...
+                        </span>
+                      ) : (
+                        <span className="flex items-center text-xs">
+                          <Save className="mr-1 h-3 w-3" />
+                          変更を保存
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
 
           {/* Payment Tab */}
           <TabsContent value="payment">
@@ -174,13 +203,23 @@ export default function PublisherSettingsPage() {
                   </p>
                 </div>
 
-                <Button onClick={handleSave} disabled={isSaving}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {isSaving ? '保存中...' : '変更を保存'}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  <div className="flex justify-end">
+                    <Button onClick={handleSave} disabled={isSaving} size="sm" className="h-7">
+                      {isSaving ? (
+                        <span className="flex items-center text-xs">
+                          <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></span>
+                          保存中...
+                        </span>
+                      ) : (
+                        <span className="flex items-center text-xs">
+                          <Save className="mr-1 h-3 w-3" />
+                          変更を保存
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
 
           {/* Notifications Tab */}
           <TabsContent value="notifications">
@@ -247,13 +286,23 @@ export default function PublisherSettingsPage() {
                   </div>
                 </div>
 
-                <Button onClick={handleSave} disabled={isSaving}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {isSaving ? '保存中...' : '変更を保存'}
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  <div className="flex justify-end">
+                    <Button onClick={handleSave} disabled={isSaving} size="sm" className="h-7">
+                      {isSaving ? (
+                        <span className="flex items-center text-xs">
+                          <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></span>
+                          保存中...
+                        </span>
+                      ) : (
+                        <span className="flex items-center text-xs">
+                          <Save className="mr-1 h-3 w-3" />
+                          変更を保存
+                        </span>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </TabsContent>
 
           {/* Security Tab */}
           <TabsContent value="security">

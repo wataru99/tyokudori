@@ -1,8 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { PageLoading } from '@/components/ui/loading'
+import { useLoading } from '@/contexts/loading-context'
+import { useNavigation } from '@/hooks/use-navigation'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
@@ -52,12 +55,14 @@ interface Campaign {
 }
 
 export default function AdvertiserCampaignsPage() {
-  const router = useRouter()
   const pathname = usePathname()
   const { toast } = useToast()
+  const { setLoading: setGlobalLoading } = useLoading()
+  const { navigate } = useNavigation()
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isPageLoading, setIsPageLoading] = useState(false)
   const [targetPath, setTargetPath] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
@@ -65,17 +70,23 @@ export default function AdvertiserCampaignsPage() {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
   const [activeTab, setActiveTab] = useState('overview')
 
+  // Initial page loading
+  useEffect(() => {
+    const loadData = async () => {
+      setGlobalLoading(true, 'データを読み込んでいます...')
+      // Add a short delay for smoother transition
+      await new Promise(resolve => setTimeout(resolve, 300))
+      setIsLoading(false)
+      setIsPageLoading(false)
+      setGlobalLoading(false)
+    }
+    loadData()
+  }, [])
+
   useEffect(() => {
     fetchCampaigns()
   }, [])
 
-  // Reset loading when route changes
-  useEffect(() => {
-    if (targetPath && pathname === targetPath) {
-      setIsLoading(false)
-      setTargetPath(null)
-    }
-  }, [pathname, targetPath])
 
   const fetchCampaigns = async () => {
     try {
@@ -188,21 +199,14 @@ export default function AdvertiserCampaignsPage() {
     }
   }
 
-  const handleNavigate = (path: string) => {
-    if (pathname === path) return
-    
-    setIsLoading(true)
-    setTargetPath(path)
-    router.push(path)
-  }
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-100 text-green-800'
-      case 'PAUSED': return 'bg-yellow-100 text-yellow-800'
-      case 'DRAFT': return 'bg-gray-100 text-gray-800'
-      case 'EXPIRED': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'ACTIVE': return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      case 'PAUSED': return 'bg-amber-50 text-amber-700 border-amber-200'
+      case 'DRAFT': return 'bg-slate-50 text-slate-700 border-slate-200'
+      case 'EXPIRED': return 'bg-rose-50 text-rose-700 border-rose-200'
+      default: return 'bg-slate-50 text-slate-700 border-slate-200'
     }
   }
 
@@ -222,44 +226,37 @@ export default function AdvertiserCampaignsPage() {
     return `${((conversions / clicks) * 100).toFixed(2)}%`
   }
 
+  if (isPageLoading) {
+    return <PageLoading text="案件管理を読み込んでいます..." />
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container max-w-7xl mx-auto px-4 py-6">
-        {/* Loading Overlay */}
-        {isLoading && (
-          <div className="fixed inset-0 bg-black bg-opacity-20 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 flex items-center space-x-3 shadow-lg">
-              <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <span className="text-gray-700">読み込み中...</span>
-            </div>
-          </div>
-        )}
+      <div className="w-full px-3 py-3">
 
         {/* Page Header */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="bg-white rounded shadow-sm border p-2 mb-2">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-bold text-gray-900">案件管理</h1>
-              <p className="text-gray-600 mt-1">
-                作成した案件の管理とパフォーマンス確認を行います
-              </p>
+              <h1 className="text-sm font-bold text-gray-900">案件管理</h1>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
               <div className="text-right">
-                <div className="text-sm text-gray-500">総案件数</div>
-                <div className="text-xl font-bold text-blue-600">{campaigns.length}</div>
+                <div className="text-xs text-gray-500">総案件数</div>
+                <div className="text-sm font-bold text-blue-600">{campaigns.length}</div>
               </div>
               <div className="text-right">
-                <div className="text-sm text-gray-500">アクティブ</div>
-                <div className="text-xl font-bold text-green-600">
+                <div className="text-xs text-gray-500">アクティブ</div>
+                <div className="text-sm font-bold text-green-600">
                   {campaigns.filter(c => c.status === 'ACTIVE').length}
                 </div>
               </div>
               <Button 
-                onClick={() => handleNavigate('/advertiser/offers/new')}
+                onClick={() => navigate('/advertiser/offers/new')}
                 className="bg-blue-600 hover:bg-blue-700"
+                size="sm"
               >
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="mr-2 h-3 w-3" />
                 新規作成
               </Button>
             </div>
@@ -267,17 +264,17 @@ export default function AdvertiserCampaignsPage() {
         </div>
 
         {/* フィルタセクション */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">検索・フィルタ</h3>
-            <Button variant="outline" size="sm" className="text-gray-600">
-              <Filter className="mr-2 h-4 w-4" />
+        <div className="bg-white rounded shadow-sm border p-3 mb-2">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-gray-900">検索・フィルタ</h3>
+            <Button variant="outline" size="sm" className="text-gray-600 h-6 text-xs">
+              <Filter className="mr-1 h-3 w-3" />
               フィルタリセット
             </Button>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-2 md:grid-cols-3">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 text-gray-400" />
               <Input
                 placeholder="案件名、説明で検索..."
                 value={searchQuery}
@@ -313,26 +310,26 @@ export default function AdvertiserCampaignsPage() {
         </div>
 
         {/* 案件テーブル */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="px-6 py-4 border-b border-gray-200">
+        <div className="bg-white rounded shadow-sm border">
+          <div className="px-3 py-2 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">案件一覧</h3>
-                <p className="text-sm text-gray-600">
+                <h3 className="text-sm font-semibold text-gray-900">案件一覧</h3>
+                <p className="text-xs text-gray-600">
                   全{campaigns.length}件の案件（{filteredCampaigns.length}件表示中）
                 </p>
               </div>
-              <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <span className="inline-flex items-center px-2 py-1 rounded-full bg-green-100 text-green-800">
-                  <div className="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
+              <div className="flex items-center space-x-1 text-xs text-gray-500">
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border-emerald-200">
+                  <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full mr-1"></div>
                   アクティブ
                 </span>
-                <span className="inline-flex items-center px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
-                  <div className="w-2 h-2 bg-yellow-400 rounded-full mr-1"></div>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border-amber-200">
+                  <div className="w-1.5 h-1.5 bg-amber-400 rounded-full mr-1"></div>
                   一時停止
                 </span>
-                <span className="inline-flex items-center px-2 py-1 rounded-full bg-gray-100 text-gray-800">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full mr-1"></div>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full bg-slate-50 text-slate-700 border-slate-200">
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full mr-1"></div>
                   下書き
                 </span>
               </div>
@@ -342,20 +339,20 @@ export default function AdvertiserCampaignsPage() {
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="flex items-center space-x-3">
-                  <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  <span className="text-gray-600">読み込み中...</span>
+                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-gray-600 text-xs">読み込み中...</span>
                 </div>
               </div>
             ) : (
               <Table>
                 <TableHeader className="bg-gray-50">
                   <TableRow className="hover:bg-gray-50">
-                    <TableHead className="font-semibold text-gray-700 py-4">案件情報</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">ステータス</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">報酬</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">パフォーマンス</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">申請・リンク</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4 w-[100px]">操作</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-2 text-xs">案件情報</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-2 text-xs">ステータス</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-2 text-xs">報酬</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-2 text-xs">パフォーマンス</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-2 text-xs">申請・リンク</TableHead>
+                    <TableHead className="font-semibold text-gray-700 py-2 text-xs w-[60px]">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -365,44 +362,44 @@ export default function AdvertiserCampaignsPage() {
                       className="cursor-pointer hover:bg-blue-50 transition-colors border-b border-gray-100"
                       onClick={() => handleCampaignClick(campaign)}
                     >
-                      <TableCell className="py-4">
-                        <div className="flex items-start space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <span className="text-white font-bold text-sm">
+                      <TableCell className="py-2">
+                        <div className="flex items-start space-x-2">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center flex-shrink-0">
+                            <span className="text-white font-bold text-xs">
                               {campaign.category.charAt(0)}
                             </span>
                           </div>
                           <div className="min-w-0">
-                            <div className="font-medium text-gray-900 truncate">{campaign.name}</div>
-                            <div className="text-sm text-gray-500 mt-1 truncate">
+                            <div className="font-medium text-gray-900 truncate text-xs">{campaign.name}</div>
+                            <div className="text-xs text-gray-500 mt-0.5 truncate">
                               {campaign.description}
                             </div>
-                            <div className="text-xs text-gray-400 mt-1">
+                            <div className="text-xs text-gray-400 mt-0.5">
                               {campaign.category} • {formatDate(campaign.createdAt)}
                             </div>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <Badge className={`${getStatusBadgeColor(campaign.status)} px-3 py-1`}>
+                      <TableCell className="py-2">
+                        <Badge className={`${getStatusBadgeColor(campaign.status)} px-2 py-0.5 text-xs`}>
                           {campaign.status === 'ACTIVE' ? 'アクティブ' :
                            campaign.status === 'PAUSED' ? '一時停止' :
                            campaign.status === 'DRAFT' ? '下書き' : '期限切れ'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <div className="font-semibold text-gray-900">{getCommissionText(campaign)}</div>
+                      <TableCell className="py-2">
+                        <div className="font-semibold text-gray-900 text-xs">{getCommissionText(campaign)}</div>
                         <div className="text-xs text-gray-500 uppercase tracking-wide">{campaign.commissionType}</div>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <div className="space-y-1">
+                      <TableCell className="py-2">
+                        <div className="space-y-0.5">
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-gray-500">CV:</span>
-                            <span className="font-medium text-gray-900">{campaign.conversionCount}</span>
+                            <span className="font-medium text-gray-900 text-xs">{campaign.conversionCount}</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-gray-500">CVR:</span>
-                            <span className="text-sm font-medium text-blue-600">
+                            <span className="text-xs font-medium text-blue-600">
                               {getCVR(campaign.clickCount, campaign.conversionCount)}
                             </span>
                           </div>
@@ -414,54 +411,54 @@ export default function AdvertiserCampaignsPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                              <Users className="h-3 w-3 text-blue-600" />
+                      <TableCell className="py-2">
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-1">
+                            <div className="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center">
+                              <Users className="h-2.5 w-2.5 text-blue-600" />
                             </div>
-                            <span className="text-sm text-gray-900">{campaign.applicationCount}件申請</span>
+                            <span className="text-xs text-gray-900">{campaign.applicationCount}件申請</span>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
-                              <BarChart3 className="h-3 w-3 text-green-600" />
+                          <div className="flex items-center space-x-1">
+                            <div className="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center">
+                              <BarChart3 className="h-2.5 w-2.5 text-green-600" />
                             </div>
-                            <span className="text-sm text-gray-900">{campaign.activeLinks}件有効</span>
+                            <span className="text-xs text-gray-900">{campaign.activeLinks}件有効</span>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="py-4" onClick={(e) => e.stopPropagation()}>
+                      <TableCell className="py-2" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full">
-                              <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                            <Button variant="ghost" className="h-6 w-6 p-0 hover:bg-gray-100 rounded-full">
+                              <MoreHorizontal className="h-3 w-3 text-gray-500" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleNavigate(`/advertiser/campaigns/${campaign.id}/edit`)}>
-                              <Edit className="mr-2 h-4 w-4" />
+                            <DropdownMenuItem onClick={() => navigate(`/advertiser/campaigns/${campaign.id}/edit`)} className="text-xs">
+                              <Edit className="mr-1.5 h-3 w-3" />
                               編集
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleCampaignClick(campaign)}>
-                              <Eye className="mr-2 h-4 w-4" />
+                            <DropdownMenuItem onClick={() => handleCampaignClick(campaign)} className="text-xs">
+                              <Eye className="mr-1.5 h-3 w-3" />
                               詳細を見る
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => handleStatusChange(campaign.id, 'ACTIVE')}>
-                              <Play className="mr-2 h-4 w-4" />
+                            <DropdownMenuItem onClick={() => handleStatusChange(campaign.id, 'ACTIVE')} className="text-xs">
+                              <Play className="mr-1.5 h-3 w-3" />
                               有効化
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStatusChange(campaign.id, 'PAUSED')}>
-                              <Pause className="mr-2 h-4 w-4" />
+                            <DropdownMenuItem onClick={() => handleStatusChange(campaign.id, 'PAUSED')} className="text-xs">
+                              <Pause className="mr-1.5 h-3 w-3" />
                               一時停止
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleStatusChange(campaign.id, 'EXPIRED')}>
-                              <Ban className="mr-2 h-4 w-4" />
+                            <DropdownMenuItem onClick={() => handleStatusChange(campaign.id, 'EXPIRED')} className="text-xs">
+                              <Ban className="mr-1.5 h-3 w-3" />
                               停止
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">
-                              <Trash2 className="mr-2 h-4 w-4" />
+                            <DropdownMenuItem className="text-red-600 text-xs">
+                              <Trash2 className="mr-1.5 h-3 w-3" />
                               削除
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -551,7 +548,7 @@ export default function AdvertiserCampaignsPage() {
                   <div className="text-gray-600">
                     この案件への申請管理は /advertiser/applications ページで行えます。
                   </div>
-                  <Button onClick={() => handleNavigate('/advertiser/applications')}>
+                  <Button onClick={() => navigate('/advertiser/applications')}>
                     申請管理ページへ
                   </Button>
                 </TabsContent>

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useLoading } from '@/contexts/loading-context'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -19,6 +20,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/components/ui/use-toast'
+import { PageLoading, TableLoading } from '@/components/ui/loading'
 import { 
   Mail, 
   Search, 
@@ -52,6 +54,9 @@ interface Inquiry {
 
 export default function AdminInquiriesPage() {
   const { toast } = useToast()
+  const { setLoading } = useLoading()
+  const [isLoading, setIsLoading] = useState(true)
+  const [inquiries, setInquiries] = useState<Inquiry[]>([])
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
   const [isReplyOpen, setIsReplyOpen] = useState(false)
@@ -60,77 +65,93 @@ export default function AdminInquiriesPage() {
   const [filterCategory, setFilterCategory] = useState('all')
   const [filterStatus, setFilterStatus] = useState('all')
 
-  // Mock data
-  const inquiries: Inquiry[] = [
-    {
-      id: '1',
-      senderType: 'publisher',
-      senderName: '山田 太郎',
-      senderEmail: 'yamada@example.com',
-      category: 'payment',
-      subject: '報酬の支払いタイミングについて',
-      message: '先月の報酬がまだ振り込まれていないようですが、いつ頃の予定でしょうか？',
-      status: 'NEW',
-      createdAt: '2024-02-15T10:30:00Z'
-    },
-    {
-      id: '2',
-      senderType: 'advertiser',
-      senderName: '鈴木 花子',
-      senderEmail: 'suzuki@company.com',
-      companyName: '株式会社ABC',
-      category: 'campaign',
-      subject: 'キャンペーンの成果が伸び悩んでいます',
-      message: '先週から開始したキャンペーンの成果が想定を下回っています。改善策をご提案いただけますか？',
-      status: 'IN_PROGRESS',
-      createdAt: '2024-02-15T09:15:00Z',
-      assignee: '営業担当A'
-    },
-    {
-      id: '3',
-      senderType: 'publisher',
-      senderName: '佐藤 次郎',
-      senderEmail: 'sato@blog.com',
-      category: 'technical',
-      subject: 'リンクが正しく動作しません',
-      message: 'アフィリエイトリンクをクリックしても404エラーが表示されます。確認をお願いします。',
-      status: 'RESOLVED',
-      createdAt: '2024-02-14T14:00:00Z',
-      repliedAt: '2024-02-14T16:30:00Z'
-    },
-    {
-      id: '4',
-      senderType: 'advertiser',
-      senderName: '高橋 美咲',
-      senderEmail: 'takahashi@brand.com',
-      companyName: 'ブランドXYZ',
-      category: 'proposal',
-      subject: '新しいクリエイティブの提案',
-      message: '春のキャンペーンに向けて新しいバナークリエイティブを準備しました。レビューをお願いします。',
-      status: 'NEW',
-      createdAt: '2024-02-15T11:45:00Z'
+  // Load data with simulated delay
+  useEffect(() => {
+    const loadInquiries = async () => {
+      setIsLoading(true)
+      setLoading(true, 'データを読み込んでいます...')
+      // Add a short delay for smoother transition
+      await new Promise(resolve => setTimeout(resolve, 300))
+      
+      // Mock data
+      const mockInquiries: Inquiry[] = [
+        {
+          id: '1',
+          senderType: 'publisher',
+          senderName: '山田 太郎',
+          senderEmail: 'yamada@example.com',
+          category: 'payment',
+          subject: '報酬の支払いタイミングについて',
+          message: '先月の報酬がまだ振り込まれていないようですが、いつ頃の予定でしょうか？',
+          status: 'NEW',
+          createdAt: '2024-02-15T10:30:00Z'
+        },
+        {
+          id: '2',
+          senderType: 'advertiser',
+          senderName: '鈴木 花子',
+          senderEmail: 'suzuki@company.com',
+          companyName: '株式会社ABC',
+          category: 'campaign',
+          subject: 'キャンペーンの成果が伸び悩んでいます',
+          message: '先週から開始したキャンペーンの成果が想定を下回っています。改善策をご提案いただけますか？',
+          status: 'IN_PROGRESS',
+          createdAt: '2024-02-15T09:15:00Z',
+          assignee: '営業担当A'
+        },
+        {
+          id: '3',
+          senderType: 'publisher',
+          senderName: '佐藤 次郎',
+          senderEmail: 'sato@blog.com',
+          category: 'technical',
+          subject: 'リンクが正しく動作しません',
+          message: 'アフィリエイトリンクをクリックしても404エラーが表示されます。確認をお願いします。',
+          status: 'RESOLVED',
+          createdAt: '2024-02-14T14:00:00Z',
+          repliedAt: '2024-02-14T16:30:00Z'
+        },
+        {
+          id: '4',
+          senderType: 'advertiser',
+          senderName: '高橋 美咲',
+          senderEmail: 'takahashi@brand.com',
+          companyName: 'ブランドXYZ',
+          category: 'proposal',
+          subject: '新しいクリエイティブの提案',
+          message: '春のキャンペーンに向けて新しいバナークリエイティブを準備しました。レビューをお願いします。',
+          status: 'NEW',
+          createdAt: '2024-02-15T11:45:00Z'
+        }
+      ]
+      
+      setInquiries(mockInquiries)
+      setIsLoading(false)
+      setLoading(false)
     }
-  ]
+
+    loadInquiries()
+  }, [])
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'NEW':
-        return <Badge variant="destructive" className="flex items-center gap-1">
+        return <Badge variant="destructive" className="flex items-center gap-1 text-xs px-2 py-0.5">
           <AlertCircle className="h-3 w-3" />
           新規
         </Badge>
       case 'IN_PROGRESS':
-        return <Badge variant="warning" className="flex items-center gap-1">
+        return <Badge variant="warning" className="flex items-center gap-1 text-xs px-2 py-0.5">
           <Clock className="h-3 w-3" />
           対応中
         </Badge>
       case 'RESOLVED':
-        return <Badge variant="success" className="flex items-center gap-1">
+        return <Badge variant="success" className="flex items-center gap-1 text-xs px-2 py-0.5">
           <CheckCircle className="h-3 w-3" />
           解決済み
         </Badge>
       case 'ARCHIVED':
-        return <Badge variant="secondary">アーカイブ</Badge>
+        return <Badge variant="secondary" className="text-xs px-2 py-0.5">アーカイブ</Badge>
       default:
         return null
     }
@@ -189,23 +210,24 @@ export default function AdminInquiriesPage() {
   const inProgressInquiries = filteredInquiries.filter(i => i.status === 'IN_PROGRESS')
   const resolvedInquiries = filteredInquiries.filter(i => i.status === 'RESOLVED' || i.status === 'ARCHIVED')
 
+  if (isLoading) {
+    return <PageLoading text="お問い合わせデータを読み込んでいます..." />
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container max-w-7xl mx-auto px-4 py-6">
+      <div className="w-full px-3 py-3">
         {/* Page Header */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="bg-white rounded shadow-sm border p-2 mb-2">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">お問い合わせ管理</h1>
-              <p className="text-gray-600 mt-1">
-                ユーザーからのお問い合わせを管理・対応します
-              </p>
+              <h1 className="text-sm font-bold text-gray-900">お問い合わせ管理</h1>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="destructive" className="text-lg px-4 py-2">
+              <Badge variant="destructive" className="text-xs px-2 py-0.5">
                 新規: {newInquiries.length}
               </Badge>
-              <Badge variant="warning" className="text-lg px-4 py-2">
+              <Badge variant="warning" className="text-xs px-2 py-0.5">
                 対応中: {inProgressInquiries.length}
               </Badge>
             </div>
@@ -213,22 +235,22 @@ export default function AdminInquiriesPage() {
         </div>
 
         {/* Filters */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex flex-wrap gap-4">
-              <div className="flex-1 min-w-[200px]">
+        <Card className="mb-3">
+          <CardContent className="p-3">
+            <div className="flex flex-wrap gap-2">
+              <div className="flex-1 min-w-[150px]">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 h-3 w-3" />
                   <Input
                     placeholder="件名、送信者名、メールアドレスで検索"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-7 h-8 text-xs"
                   />
                 </div>
               </div>
               <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-[120px] h-8 text-xs">
                   <SelectValue placeholder="カテゴリー" />
                 </SelectTrigger>
                 <SelectContent>
@@ -242,7 +264,7 @@ export default function AdminInquiriesPage() {
                 </SelectContent>
               </Select>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-[120px] h-8 text-xs">
                   <SelectValue placeholder="ステータス" />
                 </SelectTrigger>
                 <SelectContent>
@@ -259,16 +281,16 @@ export default function AdminInquiriesPage() {
 
         {/* Inquiries Table */}
         <Card>
-          <CardHeader>
-            <CardTitle>お問い合わせ一覧</CardTitle>
+          <CardHeader className="py-2 px-3">
+            <CardTitle className="text-sm">お問い合わせ一覧</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-3">
             <Tabs defaultValue="all">
-              <TabsList className="mb-4">
-                <TabsTrigger value="all">すべて ({filteredInquiries.length})</TabsTrigger>
-                <TabsTrigger value="new">新規 ({newInquiries.length})</TabsTrigger>
-                <TabsTrigger value="in_progress">対応中 ({inProgressInquiries.length})</TabsTrigger>
-                <TabsTrigger value="resolved">完了 ({resolvedInquiries.length})</TabsTrigger>
+              <TabsList className="mb-2 h-8">
+                <TabsTrigger value="all" className="text-xs px-2 py-1">すべて ({filteredInquiries.length})</TabsTrigger>
+                <TabsTrigger value="new" className="text-xs px-2 py-1">新規 ({newInquiries.length})</TabsTrigger>
+                <TabsTrigger value="in_progress" className="text-xs px-2 py-1">対応中 ({inProgressInquiries.length})</TabsTrigger>
+                <TabsTrigger value="resolved" className="text-xs px-2 py-1">完了 ({resolvedInquiries.length})</TabsTrigger>
               </TabsList>
 
               <TabsContent value="all">
@@ -320,33 +342,33 @@ export default function AdminInquiriesPage() {
 
         {/* Inquiry Detail Dialog */}
         <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-          <DialogContent className="max-w-3xl">
+          <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
             {selectedInquiry && (
               <>
                 <DialogHeader>
-                  <DialogTitle className="text-xl flex items-center justify-between">
+                  <DialogTitle className="text-lg flex items-center justify-between">
                     <span>{selectedInquiry.subject}</span>
                     <div className="flex gap-2">
                       {getStatusBadge(selectedInquiry.status)}
                     </div>
                   </DialogTitle>
-                  <DialogDescription>
+                  <DialogDescription className="text-xs">
                     問い合わせ ID: #{selectedInquiry.id}
                   </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 mt-4">
                   {/* Sender Info */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium mb-2 flex items-center">
+                  <div className="bg-gray-50 rounded-lg p-3">
+                    <h4 className="font-medium mb-2 flex items-center text-sm">
                       {selectedInquiry.senderType === 'publisher' ? (
-                        <User className="h-4 w-4 mr-2" />
+                        <User className="h-3 w-3 mr-2" />
                       ) : (
-                        <Building className="h-4 w-4 mr-2" />
+                        <Building className="h-3 w-3 mr-2" />
                       )}
                       送信者情報
                     </h4>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
                         <span className="text-gray-600">名前:</span> {selectedInquiry.senderName}
                       </div>
@@ -372,8 +394,8 @@ export default function AdminInquiriesPage() {
 
                   {/* Message */}
                   <div>
-                    <h4 className="font-medium mb-2">メッセージ</h4>
-                    <div className="bg-gray-50 rounded-lg p-4 whitespace-pre-wrap">
+                    <h4 className="font-medium mb-2 text-sm">メッセージ</h4>
+                    <div className="bg-gray-50 rounded-lg p-3 whitespace-pre-wrap text-xs">
                       {selectedInquiry.message}
                     </div>
                   </div>
@@ -381,8 +403,8 @@ export default function AdminInquiriesPage() {
                   {/* Assignee */}
                   {selectedInquiry.assignee && (
                     <div>
-                      <h4 className="font-medium mb-2">担当者</h4>
-                      <p className="text-sm">{selectedInquiry.assignee}</p>
+                      <h4 className="font-medium mb-2 text-sm">担当者</h4>
+                      <p className="text-xs">{selectedInquiry.assignee}</p>
                     </div>
                   )}
 
@@ -393,12 +415,16 @@ export default function AdminInquiriesPage() {
                         setIsDetailOpen(false)
                         setIsReplyOpen(true)
                       }}
+                      size="sm"
+                      className="h-7 text-xs"
                     >
-                      <Reply className="h-4 w-4 mr-2" />
+                      <Reply className="h-3 w-3 mr-1" />
                       返信する
                     </Button>
                     <Button 
                       variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
                       onClick={() => handleStatusChange(selectedInquiry.id, 'IN_PROGRESS')}
                       disabled={selectedInquiry.status !== 'NEW'}
                     >
@@ -406,6 +432,8 @@ export default function AdminInquiriesPage() {
                     </Button>
                     <Button 
                       variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
                       onClick={() => handleStatusChange(selectedInquiry.id, 'RESOLVED')}
                       disabled={selectedInquiry.status === 'RESOLVED' || selectedInquiry.status === 'ARCHIVED'}
                     >
@@ -413,9 +441,11 @@ export default function AdminInquiriesPage() {
                     </Button>
                     <Button 
                       variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
                       onClick={() => handleStatusChange(selectedInquiry.id, 'ARCHIVED')}
                     >
-                      <Archive className="h-4 w-4 mr-2" />
+                      <Archive className="h-3 w-3 mr-1" />
                       アーカイブ
                     </Button>
                   </div>
@@ -427,48 +457,48 @@ export default function AdminInquiriesPage() {
 
         {/* Reply Dialog */}
         <Dialog open={isReplyOpen} onOpenChange={setIsReplyOpen}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>返信を作成</DialogTitle>
-              <DialogDescription>
+              <DialogTitle className="text-lg">返信を作成</DialogTitle>
+              <DialogDescription className="text-xs">
                 {selectedInquiry && `${selectedInquiry.senderName}様への返信`}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 mt-4">
               <div>
-                <Label>宛先</Label>
-                <p className="text-sm text-gray-600">
+                <Label className="text-sm">宛先</Label>
+                <p className="text-xs text-gray-600">
                   {selectedInquiry?.senderEmail}
                 </p>
               </div>
 
               <div>
-                <Label>件名</Label>
-                <p className="text-sm text-gray-600">
+                <Label className="text-sm">件名</Label>
+                <p className="text-xs text-gray-600">
                   Re: {selectedInquiry?.subject}
                 </p>
               </div>
 
               <div>
-                <Label htmlFor="reply">返信内容</Label>
+                <Label htmlFor="reply" className="text-sm">返信内容</Label>
                 <Textarea
                   id="reply"
                   value={replyMessage}
                   onChange={(e) => setReplyMessage(e.target.value)}
-                  rows={10}
+                  rows={8}
                   placeholder="返信内容を入力してください..."
-                  className="mt-2"
+                  className="mt-2 text-xs"
                 />
               </div>
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsReplyOpen(false)}>
+              <Button variant="outline" onClick={() => setIsReplyOpen(false)} size="sm" className="h-7 text-xs">
                 キャンセル
               </Button>
-              <Button onClick={handleReply} disabled={!replyMessage}>
-                <Send className="h-4 w-4 mr-2" />
+              <Button onClick={handleReply} disabled={!replyMessage} size="sm" className="h-7 text-xs">
+                <Send className="h-3 w-3 mr-1" />
                 送信
               </Button>
             </DialogFooter>
@@ -492,42 +522,43 @@ function InquiryTable({
   return (
     <div className="overflow-x-auto">
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-gray-50">
           <TableRow>
-            <TableHead>ステータス</TableHead>
-            <TableHead>送信者</TableHead>
-            <TableHead>件名</TableHead>
-            <TableHead>カテゴリー</TableHead>
-            <TableHead>受信日時</TableHead>
-            <TableHead>アクション</TableHead>
+            <TableHead className="font-medium text-gray-700 text-xs py-1">ステータス</TableHead>
+            <TableHead className="font-medium text-gray-700 text-xs py-1">送信者</TableHead>
+            <TableHead className="font-medium text-gray-700 text-xs py-1">件名</TableHead>
+            <TableHead className="font-medium text-gray-700 text-xs py-1">カテゴリー</TableHead>
+            <TableHead className="font-medium text-gray-700 text-xs py-1">受信日時</TableHead>
+            <TableHead className="font-medium text-gray-700 text-xs py-1">アクション</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {inquiries.map((inquiry) => (
             <TableRow key={inquiry.id}>
-              <TableCell>{getStatusBadge(inquiry.status)}</TableCell>
-              <TableCell>
+              <TableCell className="py-1">{getStatusBadge(inquiry.status)}</TableCell>
+              <TableCell className="py-1">
                 <div>
-                  <p className="font-medium">{inquiry.senderName}</p>
-                  <p className="text-sm text-gray-500">
+                  <p className="font-medium text-xs">{inquiry.senderName}</p>
+                  <p className="text-xs text-gray-500">
                     {inquiry.senderType === 'publisher' ? 'アフィリエイター' : '広告主'}
                   </p>
                 </div>
               </TableCell>
-              <TableCell className="max-w-[300px]">
-                <p className="truncate">{inquiry.subject}</p>
+              <TableCell className="max-w-[300px] py-1">
+                <p className="truncate text-xs">{inquiry.subject}</p>
               </TableCell>
-              <TableCell>{getCategoryLabel(inquiry.category)}</TableCell>
-              <TableCell className="text-sm">
+              <TableCell className="py-1 text-xs">{getCategoryLabel(inquiry.category)}</TableCell>
+              <TableCell className="py-1 text-xs">
                 {new Date(inquiry.createdAt).toLocaleString('ja-JP')}
               </TableCell>
-              <TableCell>
+              <TableCell className="py-1">
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={() => onView(inquiry)}
+                  className="h-6 px-2 text-xs"
                 >
-                  <Eye className="h-4 w-4 mr-1" />
+                  <Eye className="h-3 w-3 mr-1" />
                   詳細
                 </Button>
               </TableCell>
@@ -542,22 +573,22 @@ function InquiryTable({
 function getStatusBadge(status: string) {
   switch (status) {
     case 'NEW':
-      return <Badge variant="destructive" className="flex items-center gap-1 w-fit">
+      return <Badge variant="destructive" className="flex items-center gap-1 w-fit text-xs px-2 py-0.5">
         <AlertCircle className="h-3 w-3" />
         新規
       </Badge>
     case 'IN_PROGRESS':
-      return <Badge variant="warning" className="flex items-center gap-1 w-fit">
+      return <Badge variant="warning" className="flex items-center gap-1 w-fit text-xs px-2 py-0.5">
         <Clock className="h-3 w-3" />
         対応中
       </Badge>
     case 'RESOLVED':
-      return <Badge variant="success" className="flex items-center gap-1 w-fit">
+      return <Badge variant="success" className="flex items-center gap-1 w-fit text-xs px-2 py-0.5">
         <CheckCircle className="h-3 w-3" />
         解決済み
       </Badge>
     case 'ARCHIVED':
-      return <Badge variant="secondary" className="w-fit">アーカイブ</Badge>
+      return <Badge variant="secondary" className="w-fit text-xs px-2 py-0.5">アーカイブ</Badge>
     default:
       return null
   }

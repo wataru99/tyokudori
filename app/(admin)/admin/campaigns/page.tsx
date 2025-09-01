@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { PageLoading } from '@/components/ui/loading'
+import { useLoading } from '@/contexts/loading-context'
+import { useNavigation } from '@/hooks/use-navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -84,6 +87,9 @@ interface CampaignEditData {
 
 export default function AdminCampaignsPage() {
   const { toast } = useToast()
+  const { setLoading } = useLoading()
+  const { navigate } = useNavigation()
+  const [isLoading, setIsLoading] = useState(true)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -207,7 +213,16 @@ export default function AdminCampaignsPage() {
   }
 
   useEffect(() => {
-    fetchCampaigns()
+    // Initialize data
+    const loadData = async () => {
+      setLoading(true, 'データを読み込んでいます...')
+      // Add a short delay for smoother transition
+      await new Promise(resolve => setTimeout(resolve, 300))
+      setIsLoading(false)
+      setLoading(false)
+      fetchCampaigns()
+    }
+    loadData()
   }, [])
 
   const filteredCampaigns = campaigns.filter(campaign => {
@@ -303,26 +318,30 @@ export default function AdminCampaignsPage() {
     return `${((conversions / clicks) * 100).toFixed(2)}%`
   }
 
+  if (isLoading) {
+    return <PageLoading text="案件管理を読み込んでいます..." />
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container max-w-7xl mx-auto px-4 py-6">
+      <div className="w-full px-4 py-4">
         {/* Page Header */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border p-3 mb-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-bold text-gray-900">案件管理</h1>
-              <p className="text-gray-600 mt-1">
+              <h1 className="text-base font-bold text-gray-900">案件管理</h1>
+              <p className="text-xs text-gray-600 mt-1">
                 アフィリエイト案件の管理、申請処理、リンク管理を行います
               </p>
             </div>
             <div className="flex items-center space-x-3">
               <div className="text-right">
                 <div className="text-sm text-gray-500">総案件数</div>
-                <div className="text-xl font-bold text-blue-600">{campaigns.length}</div>
+                <div className="text-base font-bold text-blue-600">{campaigns.length}</div>
               </div>
               <div className="text-right">
                 <div className="text-sm text-gray-500">アクティブ</div>
-                <div className="text-xl font-bold text-green-600">
+                <div className="text-base font-bold text-green-600">
                   {campaigns.filter(c => c.status === 'ACTIVE').length}
                 </div>
               </div>
@@ -331,15 +350,15 @@ export default function AdminCampaignsPage() {
         </div>
 
         {/* フィルタセクション */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm border p-3 mb-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">検索・フィルタ</h3>
+            <h3 className="text-sm font-semibold text-gray-900">検索・フィルタ</h3>
             <Button variant="outline" size="sm" className="text-gray-600">
               <Filter className="mr-2 h-4 w-4" />
               フィルタリセット
             </Button>
           </div>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -377,25 +396,25 @@ export default function AdminCampaignsPage() {
         </div>
 
         {/* 案件テーブル */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          <div className="px-6 py-4 border-b border-gray-200">
+        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">案件一覧</h3>
+                <h3 className="text-sm font-semibold text-gray-900">案件一覧</h3>
                 <p className="text-sm text-gray-600">
                   全{campaigns.length}件の案件（{filteredCampaigns.length}件表示中）
                 </p>
               </div>
               <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <span className="inline-flex items-center px-2 py-1 rounded-full bg-green-100 text-green-800">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs">
                   <div className="w-2 h-2 bg-green-400 rounded-full mr-1"></div>
                   アクティブ
                 </span>
-                <span className="inline-flex items-center px-2 py-1 rounded-full bg-yellow-100 text-yellow-800">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 text-xs">
                   <div className="w-2 h-2 bg-yellow-400 rounded-full mr-1"></div>
                   一時停止
                 </span>
-                <span className="inline-flex items-center px-2 py-1 rounded-full bg-gray-100 text-gray-800">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 text-gray-800 text-xs">
                   <div className="w-2 h-2 bg-gray-400 rounded-full mr-1"></div>
                   下書き
                 </span>
@@ -414,13 +433,13 @@ export default function AdminCampaignsPage() {
               <Table>
                 <TableHeader className="bg-gray-50">
                   <TableRow className="hover:bg-gray-50">
-                    <TableHead className="font-semibold text-gray-700 py-4">案件情報</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">ステータス</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">報酬</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">パフォーマンス</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">申請数</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4">リンク数</TableHead>
-                    <TableHead className="font-semibold text-gray-700 py-4 w-[100px]">操作</TableHead>
+                    <TableHead className="font-medium text-gray-700 py-2 px-3 text-xs min-w-[180px]">案件情報</TableHead>
+                    <TableHead className="font-medium text-gray-700 py-2 px-3 text-xs hidden sm:table-cell">ステータス</TableHead>
+                    <TableHead className="font-medium text-gray-700 py-2 px-3 text-xs hidden md:table-cell">報酬</TableHead>
+                    <TableHead className="font-medium text-gray-700 py-2 px-3 text-xs hidden lg:table-cell">パフォーマンス</TableHead>
+                    <TableHead className="font-medium text-gray-700 py-2 px-3 text-xs hidden xl:table-cell">申請数</TableHead>
+                    <TableHead className="font-medium text-gray-700 py-2 px-3 text-xs hidden xl:table-cell">リンク数</TableHead>
+                    <TableHead className="font-medium text-gray-700 py-2 px-3 text-xs w-[80px]">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -433,69 +452,69 @@ export default function AdminCampaignsPage() {
                         setActiveTab('overview')
                       }}
                     >
-                      <TableCell className="py-4">
+                      <TableCell className="py-3 px-3">
                         <div className="flex items-start space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <span className="text-white font-bold text-sm">
+                          <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-md flex items-center justify-center flex-shrink-0">
+                            <span className="text-white font-semibold text-xs">
                               {campaign.category.charAt(0)}
                             </span>
                           </div>
-                          <div className="min-w-0">
-                            <div className="font-medium text-gray-900 truncate">{campaign.name}</div>
-                            <div className="text-sm text-gray-500 mt-1">
+                          <div className="min-w-0 flex-1">
+                            <div className="font-medium text-gray-900 text-sm">{campaign.name}</div>
+                            <div className="text-xs text-gray-500">
                               {campaign.advertiser.name}
                             </div>
-                            <div className="text-xs text-gray-400 mt-1">
+                            <div className="text-xs text-gray-400">
                               {campaign.category}
                             </div>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <Badge className={`${getStatusBadgeColor(campaign.status)} px-3 py-1`}>
+                      <TableCell className="py-5 px-4 sm:px-6 hidden sm:table-cell">
+                        <Badge className={`${getStatusBadgeColor(campaign.status)} px-2 py-0.5 text-xs`}>
                           {campaign.status === 'ACTIVE' ? 'アクティブ' :
                            campaign.status === 'PAUSED' ? '一時停止' :
                            campaign.status === 'DRAFT' ? '下書き' : '期限切れ'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <div className="font-semibold text-gray-900">{getCommissionText(campaign)}</div>
+                      <TableCell className="py-5 px-4 sm:px-6 hidden md:table-cell">
+                        <div className="font-medium text-gray-900 text-sm">{getCommissionText(campaign)}</div>
                         <div className="text-xs text-gray-500 uppercase tracking-wide">{campaign.commissionType}</div>
                       </TableCell>
-                      <TableCell className="py-4">
+                      <TableCell className="py-5 px-4 sm:px-6 hidden lg:table-cell">
                         <div className="space-y-1">
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-gray-500">CV:</span>
-                            <span className="font-medium text-gray-900">{campaign.conversionCount}</span>
+                            <span className="font-medium text-gray-900 text-xs">{campaign.conversionCount}</span>
                           </div>
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-gray-500">CVR:</span>
-                            <span className="text-sm font-medium text-blue-600">
+                            <span className="text-xs font-medium text-blue-600">
                               {getCVR(campaign.clickCount, campaign.conversionCount)}
                             </span>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="py-4">
+                      <TableCell className="py-5 px-4 sm:px-6 hidden xl:table-cell">
                         <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Users className="h-4 w-4 text-blue-600" />
+                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Users className="h-3 w-3 text-blue-600" />
                           </div>
                           <div>
-                            <div className="font-medium text-gray-900">{campaign.applications.length}</div>
+                            <div className="font-medium text-gray-900 text-sm">{campaign.applications.length}</div>
                             {campaign.applications.some(app => app.status === 'PENDING') && (
                               <div className="text-xs text-orange-600 font-medium">新規あり</div>
                             )}
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="py-4">
+                      <TableCell className="py-5 px-4 sm:px-6 hidden xl:table-cell">
                         <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                            <Link className="h-4 w-4 text-green-600" />
+                          <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                            <Link className="h-3 w-3 text-green-600" />
                           </div>
                           <div>
-                            <div className="font-medium text-gray-900">{campaign.affiliateLinks.length}</div>
+                            <div className="font-medium text-gray-900 text-sm">{campaign.affiliateLinks.length}</div>
                             <div className="text-xs text-green-600">
                               {campaign.affiliateLinks.filter(link => link.isActive).length}件有効
                             </div>
@@ -505,8 +524,8 @@ export default function AdminCampaignsPage() {
                       <TableCell className="py-4" onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full">
-                              <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                            <Button variant="ghost" className="h-6 w-6 p-0 hover:bg-gray-100 rounded-full">
+                              <MoreHorizontal className="h-3 w-3 text-gray-500" />
                             </Button>
                           </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -655,19 +674,19 @@ export default function AdminCampaignsPage() {
                   <Card>
                     <CardContent className="pt-6">
                       <div className="text-lg font-bold">{selectedCampaign.clickCount.toLocaleString()}</div>
-                      <p className="text-xs text-muted-foreground">総クリック数</p>
+                      <p className="text-xs text-muted-foreground mt-1">総クリック数</p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardContent className="pt-6">
                       <div className="text-lg font-bold">{selectedCampaign.conversionCount}</div>
-                      <p className="text-xs text-muted-foreground">総コンバージョン数</p>
+                      <p className="text-xs text-muted-foreground mt-1">総コンバージョン数</p>
                     </CardContent>
                   </Card>
                   <Card>
                     <CardContent className="pt-6">
                       <div className="text-lg font-bold">{selectedCampaign.approvalRate}%</div>
-                      <p className="text-xs text-muted-foreground">承認率</p>
+                      <p className="text-xs text-muted-foreground mt-1">承認率</p>
                     </CardContent>
                   </Card>
                 </div>

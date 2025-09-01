@@ -3,6 +3,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from '@/components/ui/toaster'
 import { useState } from 'react'
+import { NavigationProvider } from '@/providers/navigation-provider'
+import { ToastProvider } from '@/hooks/use-toast'
+import { LoadingProvider } from '@/contexts/loading-context'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -19,8 +22,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {children}
-      <Toaster />
+      <LoadingProvider>
+        <ToastProvider>
+          <NavigationProvider>
+            {children}
+            <Toaster />
+          </NavigationProvider>
+        </ToastProvider>
+      </LoadingProvider>
     </QueryClientProvider>
   )
 }

@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import { PageLoading } from '@/components/ui/loading'
+import { useLoading } from '@/contexts/loading-context'
+import { useNavigation } from '@/hooks/use-navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
@@ -48,8 +51,10 @@ interface Conversion {
 }
 
 export default function AdminDashboard() {
-  const router = useRouter()
   const pathname = usePathname()
+  const { setLoading } = useLoading()
+  const { navigate } = useNavigation()
+  const [isLoading, setIsLoading] = useState(true)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
   const [selectedConversion, setSelectedConversion] = useState<Conversion | null>(null)
@@ -57,6 +62,16 @@ export default function AdminDashboard() {
   const [selectedKPI, setSelectedKPI] = useState<string | null>(null)
 
   useEffect(() => {
+    // Initialize data
+    const loadData = async () => {
+      setLoading(true, 'データを読み込んでいます...')
+      // Add a short delay for smoother transition
+      await new Promise(resolve => setTimeout(resolve, 300))
+      setIsLoading(false)
+      setLoading(false)
+    }
+    loadData()
+    
     setCurrentTime(new Date().toLocaleString('ja-JP'))
     const interval = setInterval(() => {
       setCurrentTime(new Date().toLocaleString('ja-JP'))
@@ -91,6 +106,42 @@ export default function AdminDashboard() {
       role: 'PUBLISHER',
       status: 'PENDING',
       createdAt: '2024-02-13T16:45:00Z'
+    },
+    {
+      id: '4',
+      name: '高橋美咲',
+      email: 'takahashi@company.co.jp',
+      role: 'ADVERTISER',
+      status: 'ACTIVE',
+      createdAt: '2024-02-10T11:20:00Z',
+      lastLogin: '2024-02-15T10:15:00Z'
+    },
+    {
+      id: '5',
+      name: '山田次郎',
+      email: 'yamada@blog.net',
+      role: 'PUBLISHER',
+      status: 'ACTIVE',
+      createdAt: '2024-02-12T09:45:00Z',
+      lastLogin: '2024-02-15T07:30:00Z'
+    },
+    {
+      id: '6',
+      name: '中村真理',
+      email: 'nakamura@media.com',
+      role: 'PUBLISHER',
+      status: 'SUSPENDED',
+      createdAt: '2024-02-08T14:30:00Z',
+      lastLogin: '2024-02-10T16:20:00Z'
+    },
+    {
+      id: '7',
+      name: '伊藤健太',
+      email: 'ito@brand.jp',
+      role: 'ADVERTISER',
+      status: 'ACTIVE',
+      createdAt: '2024-02-05T13:15:00Z',
+      lastLogin: '2024-02-14T18:45:00Z'
     }
   ]
 
@@ -146,10 +197,6 @@ export default function AdminDashboard() {
     setSelectedConversion(conversion)
   }
 
-  const handleNavigate = (path: string) => {
-    if (pathname === path) return
-    router.push(path)
-  }
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
@@ -178,22 +225,23 @@ export default function AdminDashboard() {
   const pendingApprovals = pendingConversions.length
   const monthlyRevenue = 2450000
 
+  if (isLoading) {
+    return <PageLoading text="管理者ダッシュボードを読み込んでいます..." />
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-50">
+      <div className="w-full px-3 py-3">
 
         {/* Page Header */}
-        <div className="bg-card rounded-md shadow-sm p-8 mb-8">
+        <div className="bg-white rounded shadow-sm border p-2 mb-2">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-semibold tracking-tight">管理者ダッシュボード</h1>
-              <p className="text-muted-foreground mt-2">
-                システム全体の管理と監視を行います
-              </p>
+              <h1 className="text-sm font-bold text-gray-900">管理者ダッシュボード</h1>
             </div>
             <div className="text-right">
-              <div className="text-sm text-muted-foreground">最終更新</div>
-              <div className="text-lg font-medium">
+              <div className="text-xs text-gray-500">最終更新</div>
+              <div className="text-sm font-medium">
                 {currentTime || '読み込み中...'}
               </div>
             </div>
@@ -201,17 +249,17 @@ export default function AdminDashboard() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-4 mb-6">
+        <div className="grid gap-2 grid-cols-4 mb-2">
           <Card 
-            className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+            className="cursor-pointer hover:shadow-md transition-shadow duration-150"
             onClick={() => setSelectedKPI('users')}
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">総ユーザー数</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">総ユーザー数</CardTitle>
+              <Users className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold whitespace-nowrap">{totalUsers}</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">{totalUsers}</div>
               <p className="text-xs text-muted-foreground">
                 <TrendingUp className="inline h-3 w-3 text-foreground mr-1" />
                 前月比 +12
@@ -219,15 +267,15 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
           <Card
-            className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+            className="cursor-pointer hover:shadow-md transition-shadow duration-150"
             onClick={() => setSelectedKPI('campaigns')}
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">アクティブ案件</CardTitle>
-              <Megaphone className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">アクティブ案件</CardTitle>
+              <Megaphone className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold whitespace-nowrap">{totalCampaigns}</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">{totalCampaigns}</div>
               <p className="text-xs text-muted-foreground">
                 <TrendingUp className="inline h-3 w-3 text-foreground mr-1" />
                 前月比 +3
@@ -235,15 +283,15 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
           <Card
-            className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+            className="cursor-pointer hover:shadow-md transition-shadow duration-150"
             onClick={() => setSelectedKPI('pending')}
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">承認待ち</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">承認待ち</CardTitle>
+              <Clock className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold whitespace-nowrap">{pendingApprovals}</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">{pendingApprovals}</div>
               <p className="text-xs text-muted-foreground">
                 <AlertTriangle className="inline h-3 w-3 text-muted-foreground mr-1" />
                 要確認
@@ -251,15 +299,15 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
           <Card
-            className="cursor-pointer hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+            className="cursor-pointer hover:shadow-md transition-shadow duration-150"
             onClick={() => setSelectedKPI('revenue')}
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">月間売上</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">月間売上</CardTitle>
+              <DollarSign className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold whitespace-nowrap">¥{monthlyRevenue.toLocaleString()}</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">¥{monthlyRevenue.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
                 <TrendingUp className="inline h-3 w-3 text-foreground mr-1" />
                 前月比 +8.5%
@@ -268,16 +316,17 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-2 lg:grid-cols-2">
           {/* Recent Users */}
-          <div className="bg-card rounded-md shadow-sm">
-            <div className="px-6 py-4 border-b border-border">
+          <div className="bg-white rounded-lg shadow-sm border">
+            <div className="px-4 py-2 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">新規ユーザー</h3>
+                <h3 className="text-sm font-semibold text-gray-900">新規ユーザー</h3>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => handleNavigate('/admin/users')}
+                  className="text-xs h-7"
+                  onClick={() => navigate('/admin/users')}
                 >
                   すべて見る
                 </Button>
@@ -285,41 +334,41 @@ export default function AdminDashboard() {
             </div>
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-secondary/30">
+                <TableHeader className="bg-gray-50">
                   <TableRow>
-                    <TableHead className="font-medium">ユーザー</TableHead>
-                    <TableHead className="font-medium">権限</TableHead>
-                    <TableHead className="font-medium">ステータス</TableHead>
-                    <TableHead className="font-medium">登録日</TableHead>
+                    <TableHead className="font-medium text-gray-700 text-xs py-1">ユーザー</TableHead>
+                    <TableHead className="font-medium text-gray-700 text-xs py-1">権限</TableHead>
+                    <TableHead className="font-medium text-gray-700 text-xs py-1">ステータス</TableHead>
+                    <TableHead className="font-medium text-gray-700 text-xs py-1">登録日</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {recentUsers.map((user) => (
                     <TableRow 
                       key={user.id}
-                      className="cursor-pointer hover:bg-secondary/50 transition-colors"
+                      className="cursor-pointer hover:bg-blue-50 transition-colors"
                       onClick={() => handleUserClick(user)}
                     >
-                      <TableCell className="py-4">
+                      <TableCell className="py-1">
                         <div>
-                          <div className="font-medium">{user.name}</div>
-                          <div className="text-sm text-muted-foreground">{user.email}</div>
+                          <div className="font-medium text-xs">{user.name}</div>
+                          <div className="text-xs text-gray-500">{user.email}</div>
                         </div>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <Badge variant="outline">
+                      <TableCell className="py-1">
+                        <Badge variant="outline" className="text-xs px-2 py-0.5">
                           {user.role === 'ADMIN' ? '管理者' :
                            user.role === 'ADVERTISER' ? '広告主' : 'アフィリエイター'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <Badge className={`${getStatusBadgeColor(user.status)} border px-3 py-1`}>
+                      <TableCell className="py-1">
+                        <Badge className={`${getStatusBadgeColor(user.status)} border px-2 py-0.5 text-xs`}>
                           {user.status === 'ACTIVE' ? 'アクティブ' :
                            user.status === 'PENDING' ? '承認待ち' : '停止中'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <div className="text-sm">
+                      <TableCell className="py-1">
+                        <div className="text-xs">
                           {formatDate(user.createdAt)}
                         </div>
                       </TableCell>
@@ -331,14 +380,15 @@ export default function AdminDashboard() {
           </div>
 
           {/* Recent Campaigns */}
-          <div className="bg-card rounded-md shadow-sm">
-            <div className="px-6 py-4 border-b border-border">
+          <div className="bg-white rounded-lg shadow-sm border">
+            <div className="px-4 py-2 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">最新の案件</h3>
+                <h3 className="text-sm font-semibold text-gray-900">最新の案件</h3>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => handleNavigate('/admin/campaigns')}
+                  className="text-xs h-7"
+                  onClick={() => navigate('/admin/campaigns')}
                 >
                   すべて見る
                 </Button>
@@ -346,35 +396,35 @@ export default function AdminDashboard() {
             </div>
             <div className="overflow-x-auto">
               <Table>
-                <TableHeader className="bg-secondary/30">
+                <TableHeader className="bg-gray-50">
                   <TableRow>
-                    <TableHead className="font-medium">案件名</TableHead>
-                    <TableHead className="font-medium">ステータス</TableHead>
-                    <TableHead className="font-medium">成果数</TableHead>
+                    <TableHead className="font-medium text-gray-700 text-xs py-1">案件名</TableHead>
+                    <TableHead className="font-medium text-gray-700 text-xs py-1">ステータス</TableHead>
+                    <TableHead className="font-medium text-gray-700 text-xs py-1">成果数</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {recentCampaigns.map((campaign) => (
                     <TableRow 
                       key={campaign.id}
-                      className="cursor-pointer hover:bg-secondary/50 transition-colors"
+                      className="cursor-pointer hover:bg-blue-50 transition-colors"
                       onClick={() => handleCampaignClick(campaign)}
                     >
-                      <TableCell className="py-4">
+                      <TableCell className="py-1">
                         <div>
-                          <div className="font-medium">{campaign.name}</div>
-                          <div className="text-sm text-muted-foreground">{campaign.advertiserName}</div>
+                          <div className="font-medium text-xs">{campaign.name}</div>
+                          <div className="text-xs text-gray-500">{campaign.advertiserName}</div>
                         </div>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <Badge className={`${getStatusBadgeColor(campaign.status)} border px-3 py-1`}>
+                      <TableCell className="py-1">
+                        <Badge className={`${getStatusBadgeColor(campaign.status)} border px-2 py-0.5 text-xs`}>
                           {campaign.status === 'ACTIVE' ? 'アクティブ' :
                            campaign.status === 'PAUSED' ? '一時停止' : '下書き'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <div className="font-semibold">{campaign.conversions}</div>
-                        <div className="text-sm text-muted-foreground">¥{campaign.revenue.toLocaleString()}</div>
+                      <TableCell className="py-1">
+                        <div className="font-semibold text-xs">{campaign.conversions}</div>
+                        <div className="text-xs text-gray-500">¥{campaign.revenue.toLocaleString()}</div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -385,14 +435,15 @@ export default function AdminDashboard() {
         </div>
 
         {/* Pending Conversions */}
-        <div className="bg-card rounded-md shadow-sm mt-6">
-          <div className="px-6 py-4 border-b border-border">
+        <div className="bg-white rounded-lg shadow-sm border mt-2">
+          <div className="px-4 py-2 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">承認待ちの成果</h3>
+              <h3 className="text-sm font-semibold text-gray-900">承認待ちの成果</h3>
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => handleNavigate('/admin/conversions')}
+                className="text-xs h-7"
+                onClick={() => navigate('/admin/conversions')}
               >
                 すべて見る
               </Button>
@@ -400,12 +451,12 @@ export default function AdminDashboard() {
           </div>
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader className="bg-secondary/30">
+              <TableHeader className="bg-gray-50">
                 <TableRow>
-                  <TableHead className="font-medium">案件名</TableHead>
-                  <TableHead className="font-medium">アフィリエイター</TableHead>
-                  <TableHead className="font-medium">金額</TableHead>
-                  <TableHead className="font-medium">発生日時</TableHead>
+                  <TableHead className="font-medium text-gray-700 text-xs py-1">案件名</TableHead>
+                  <TableHead className="font-medium text-gray-700 text-xs py-1">アフィリエイター</TableHead>
+                  <TableHead className="font-medium text-gray-700 text-xs py-1">金額</TableHead>
+                  <TableHead className="font-medium text-gray-700 text-xs py-1">発生日時</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -415,17 +466,17 @@ export default function AdminDashboard() {
                     className="cursor-pointer hover:bg-blue-50 transition-colors"
                     onClick={() => handleConversionClick(conversion)}
                   >
-                    <TableCell className="py-4">
-                      <div className="font-medium">{conversion.campaignName}</div>
+                    <TableCell className="py-1">
+                      <div className="font-medium text-xs">{conversion.campaignName}</div>
                     </TableCell>
-                    <TableCell className="py-4">
-                      <div>{conversion.publisherName}</div>
+                    <TableCell className="py-1">
+                      <div className="text-xs">{conversion.publisherName}</div>
                     </TableCell>
-                    <TableCell className="py-4">
-                      <div className="font-semibold">¥{conversion.amount.toLocaleString()}</div>
+                    <TableCell className="py-1">
+                      <div className="font-semibold text-xs">¥{conversion.amount.toLocaleString()}</div>
                     </TableCell>
-                    <TableCell className="py-4">
-                      <div className="text-sm">{formatDateTime(conversion.createdAt)}</div>
+                    <TableCell className="py-1">
+                      <div className="text-xs">{formatDateTime(conversion.createdAt)}</div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -436,7 +487,7 @@ export default function AdminDashboard() {
 
         {/* User Detail Modal */}
         <Dialog open={!!selectedUser} onOpenChange={() => setSelectedUser(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>ユーザー詳細</DialogTitle>
               <DialogDescription>
@@ -487,7 +538,7 @@ export default function AdminDashboard() {
                   <Button variant="outline" onClick={() => setSelectedUser(null)}>
                     閉じる
                   </Button>
-                  <Button onClick={() => handleNavigate(`/admin/users/${selectedUser.id}`)}>
+                  <Button onClick={() => navigate(`/admin/users/${selectedUser.id}`)}>
                     <Eye className="mr-2 h-4 w-4" />
                     詳細管理
                   </Button>
@@ -499,7 +550,7 @@ export default function AdminDashboard() {
 
         {/* Campaign Detail Modal */}
         <Dialog open={!!selectedCampaign} onOpenChange={() => setSelectedCampaign(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>案件詳細</DialogTitle>
               <DialogDescription>
@@ -543,7 +594,7 @@ export default function AdminDashboard() {
                   <Button variant="outline" onClick={() => setSelectedCampaign(null)}>
                     閉じる
                   </Button>
-                  <Button onClick={() => handleNavigate(`/admin/campaigns/${selectedCampaign.id}`)}>
+                  <Button onClick={() => navigate(`/admin/campaigns/${selectedCampaign.id}`)}>
                     <Eye className="mr-2 h-4 w-4" />
                     詳細管理
                   </Button>
@@ -555,7 +606,7 @@ export default function AdminDashboard() {
 
         {/* Conversion Detail Modal */}
         <Dialog open={!!selectedConversion} onOpenChange={() => setSelectedConversion(null)}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>成果詳細</DialogTitle>
               <DialogDescription>
@@ -595,7 +646,7 @@ export default function AdminDashboard() {
                   <Button variant="outline" onClick={() => setSelectedConversion(null)}>
                     閉じる
                   </Button>
-                  <Button onClick={() => handleNavigate(`/admin/conversions/${selectedConversion.id}`)}>
+                  <Button onClick={() => navigate(`/admin/conversions/${selectedConversion.id}`)}>
                     <Eye className="mr-2 h-4 w-4" />
                     詳細管理
                   </Button>
@@ -663,7 +714,7 @@ export default function AdminDashboard() {
                         <TableRow 
                           key={user.id}
                           className="cursor-pointer hover:bg-gray-50"
-                          onClick={() => handleNavigate(`/admin/users/${user.id}`)}
+                          onClick={() => navigate(`/admin/users/${user.id}`)}
                         >
                           <TableCell className="font-medium">{user.name}</TableCell>
                           <TableCell className="text-sm text-gray-600">{user.email}</TableCell>
@@ -691,7 +742,7 @@ export default function AdminDashboard() {
                 <Button variant="outline" onClick={() => setSelectedKPI(null)}>
                   閉じる
                 </Button>
-                <Button onClick={() => handleNavigate('/admin/users')}>
+                <Button onClick={() => navigate('/admin/users')}>
                   ユーザー管理へ
                 </Button>
               </div>
@@ -756,7 +807,7 @@ export default function AdminDashboard() {
                         <TableRow 
                           key={campaign.id}
                           className="cursor-pointer hover:bg-gray-50"
-                          onClick={() => handleNavigate(`/admin/campaigns/${campaign.id}`)}
+                          onClick={() => navigate(`/admin/campaigns/${campaign.id}`)}
                         >
                           <TableCell className="font-medium">{campaign.name}</TableCell>
                           <TableCell className="text-sm text-gray-600">{campaign.advertiserName}</TableCell>
@@ -779,7 +830,7 @@ export default function AdminDashboard() {
                 <Button variant="outline" onClick={() => setSelectedKPI(null)}>
                   閉じる
                 </Button>
-                <Button onClick={() => handleNavigate('/admin/campaigns')}>
+                <Button onClick={() => navigate('/admin/campaigns')}>
                   案件管理へ
                 </Button>
               </div>
@@ -844,7 +895,7 @@ export default function AdminDashboard() {
                         <TableRow 
                           key={conversion.id}
                           className="cursor-pointer hover:bg-gray-50"
-                          onClick={() => handleNavigate(`/admin/conversions/${conversion.id}`)}
+                          onClick={() => navigate(`/admin/conversions/${conversion.id}`)}
                         >
                           <TableCell className="font-medium">{conversion.campaignName}</TableCell>
                           <TableCell className="text-sm text-gray-600">{conversion.publisherName}</TableCell>
@@ -866,7 +917,7 @@ export default function AdminDashboard() {
                 <Button variant="outline" onClick={() => setSelectedKPI(null)}>
                   閉じる
                 </Button>
-                <Button onClick={() => handleNavigate('/admin/conversions')}>
+                <Button onClick={() => navigate('/admin/conversions')}>
                   成果管理へ
                 </Button>
               </div>
@@ -951,7 +1002,7 @@ export default function AdminDashboard() {
                 <Button variant="outline" onClick={() => setSelectedKPI(null)}>
                   閉じる
                 </Button>
-                <Button onClick={() => handleNavigate('/admin/reports')}>
+                <Button onClick={() => navigate('/admin/reports')}>
                   詳細レポートへ
                 </Button>
               </div>

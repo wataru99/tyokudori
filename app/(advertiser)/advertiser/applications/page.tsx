@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import { PageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -13,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Check, X, Eye, User, Globe, BarChart3, Calendar, MessageSquare } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
+import { useLoading } from '@/contexts/loading-context'
+import { useNavigation } from '@/hooks/use-navigation'
 
 type Application = {
   id: string
@@ -110,8 +113,20 @@ export default function AdvertiserApplicationsPage() {
   const [rejectionReason, setRejectionReason] = useState('')
   const [customReason, setCustomReason] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all')
+  const { setLoading } = useLoading()
+  const { navigateWithLoading } = useNavigation()
+  const [isPageLoading, setIsPageLoading] = useState(true)
+
+  // Initial page loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleApprove = async (applicationId: string) => {
+    setLoading(true)
     try {
       setApplications(prev =>
         prev.map(app =>
@@ -131,6 +146,8 @@ export default function AdvertiserApplicationsPage() {
         description: '承認処理に失敗しました。',
         variant: 'destructive',
       })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -146,6 +163,7 @@ export default function AdvertiserApplicationsPage() {
       return
     }
 
+    setLoading(true)
     try {
       const reason = rejectionReason === 'other' ? customReason : rejectionReason
       
@@ -177,6 +195,8 @@ export default function AdvertiserApplicationsPage() {
         description: '否認処理に失敗しました。',
         variant: 'destructive',
       })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -187,6 +207,10 @@ export default function AdvertiserApplicationsPage() {
   const pendingCount = applications.filter(a => a.status === 'pending').length
   const approvedCount = applications.filter(a => a.status === 'approved').length
   const rejectedCount = applications.filter(a => a.status === 'rejected').length
+
+  if (isPageLoading) {
+    return <PageLoading text="媒体申請管理を読み込んでいます..." />
+  }
 
   return (
     <div className="container py-8">

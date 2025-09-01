@@ -1,6 +1,8 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
+import { useNavigation } from '@/hooks/use-navigation'
+import { useNavigation as useNav } from '@/providers/navigation-provider'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -23,10 +25,12 @@ interface HeaderProps {
 export function Header({ role, userName = 'ユーザー', userEmail = 'user@example.com' }: HeaderProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const { navigate } = useNavigation()
+  const { setIsNavigating } = useNav()
 
   const handleNavigate = (path: string) => {
     if (pathname === path) return
-    router.push(path)
+    navigate(path)
   }
 
   const handleLogout = () => {
@@ -39,6 +43,7 @@ export function Header({ role, userName = 'ユーザー', userEmail = 'user@exam
                       role === 'advertiser' ? '/advertiser-login' : 
                       '/publisher-login'
     
+    setIsNavigating(true)
     router.push(loginPath)
   }
 
@@ -109,7 +114,7 @@ export function Header({ role, userName = 'ユーザー', userEmail = 'user@exam
           {/* 右側のアクション */}
           <div className="flex items-center space-x-3">
             {/* 通知ベル */}
-            <Button variant="ghost" size="sm" className="relative p-2 hover:bg-accent/50 rounded-full transition-all duration-200">
+            <Button variant="ghost" size="sm" className="relative p-2 hover:bg-accent/50 rounded-full transition-colors duration-150">
               <Bell className="h-5 w-5 text-muted-foreground" />
               <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full flex items-center justify-center animate-pulse">
                 <span className="w-1.5 h-1.5 bg-destructive-foreground rounded-full"></span>
@@ -119,7 +124,7 @@ export function Header({ role, userName = 'ユーザー', userEmail = 'user@exam
             {/* ユーザーメニュー */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-3 h-10 px-3 hover:bg-accent/50 rounded-lg transition-all duration-200">
+                <Button variant="ghost" className="flex items-center space-x-3 h-10 px-3 hover:bg-accent/50 rounded-lg transition-colors duration-150">
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="text-sm font-semibold bg-secondary text-secondary-foreground">
                       {userName.charAt(0).toUpperCase()}

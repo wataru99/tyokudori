@@ -1,9 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { PageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useLoading } from '@/contexts/loading-context'
+import { useNavigation } from '@/hooks/use-navigation'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -19,7 +22,6 @@ import {
   Plus
 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
-import { LoadingOverlay } from '@/components/ui/loading-overlay'
 
 interface Campaign {
   id: string
@@ -43,21 +45,27 @@ interface Conversion {
 }
 
 export default function AdvertiserDashboard() {
-  const router = useRouter()
   const pathname = usePathname()
   const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
-  const [targetPath, setTargetPath] = useState<string | null>(null)
+  const { setLoading } = useLoading()
+  const { navigate } = useNavigation()
+  const [isLoading, setIsLoading] = useState(true)
+  const [isPageLoading, setIsPageLoading] = useState(false)
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null)
   const [selectedConversion, setSelectedConversion] = useState<Conversion | null>(null)
 
-  // Reset loading when route changes
+  // Initial page loading
   useEffect(() => {
-    if (targetPath && pathname === targetPath) {
+    const loadData = async () => {
+      setLoading(true, 'データを読み込んでいます...')
+      // Add a short delay for smoother transition
+      await new Promise(resolve => setTimeout(resolve, 300))
       setIsLoading(false)
-      setTargetPath(null)
+      setIsPageLoading(false)
+      setLoading(false)
     }
-  }, [pathname, targetPath])
+    loadData()
+  }, [])
 
   // Mock data
   const campaigns: Campaign[] = [
@@ -124,39 +132,24 @@ export default function AdvertiserDashboard() {
   ]
 
   const handleCampaignClick = (campaign: Campaign) => {
-    setIsLoading(true)
-    setTimeout(() => {
-      setSelectedCampaign(campaign)
-      setIsLoading(false)
-    }, 150)
+    setSelectedCampaign(campaign)
   }
 
   const handleConversionClick = (conversion: Conversion) => {
-    setIsLoading(true)
-    setTimeout(() => {
-      setSelectedConversion(conversion)
-      setIsLoading(false)
-    }, 150)
+    setSelectedConversion(conversion)
   }
 
-  const handleNavigate = (path: string) => {
-    if (pathname === path) return
-    
-    setIsLoading(true)
-    setTargetPath(path)
-    router.push(path)
-  }
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
-      case 'ACTIVE': return 'bg-green-100 text-green-800'
-      case 'PAUSED': return 'bg-yellow-100 text-yellow-800'
-      case 'DRAFT': return 'bg-gray-100 text-gray-800'
-      case 'EXPIRED': return 'bg-red-100 text-red-800'
-      case 'APPROVED': return 'bg-green-100 text-green-800'
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800'
-      case 'REJECTED': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'ACTIVE': return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      case 'PAUSED': return 'bg-amber-50 text-amber-700 border-amber-200'
+      case 'DRAFT': return 'bg-slate-50 text-slate-700 border-slate-200'
+      case 'EXPIRED': return 'bg-rose-50 text-rose-700 border-rose-200'
+      case 'APPROVED': return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      case 'PENDING': return 'bg-amber-50 text-amber-700 border-amber-200'
+      case 'REJECTED': return 'bg-rose-50 text-rose-700 border-rose-200'
+      default: return 'bg-slate-50 text-slate-700 border-slate-200'
     }
   }
 
@@ -174,96 +167,98 @@ export default function AdvertiserDashboard() {
   const totalClicks = campaigns.reduce((sum, campaign) => sum + campaign.clicks, 0)
   const avgCVR = totalClicks > 0 ? ((totalConversions / totalClicks) * 100).toFixed(2) : '0.00'
 
+  if (isPageLoading) {
+    return <PageLoading text="ダッシュボードを読み込んでいます..." />
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container max-w-7xl mx-auto px-4 py-6">
-        <LoadingOverlay isVisible={isLoading} />
+      <div className="w-full px-3 py-3">
 
         {/* Page Header */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+        <div className="bg-white rounded shadow-sm border p-2 mb-2">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-lg font-bold text-gray-900">広告主ダッシュボード</h1>
-              <p className="text-gray-600 mt-1">
-                案件のパフォーマンスと最新の成果を確認できます
-              </p>
+              <h1 className="text-sm font-bold text-gray-900">広告主ダッシュボード</h1>
             </div>
             <Button 
-              onClick={() => handleNavigate('/advertiser/offers/new')}
-              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => navigate('/advertiser/offers/new')}
+              className="bg-blue-600 hover:bg-blue-700" 
+              size="sm"
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="mr-2 h-3 w-3" />
               新規案件作成
             </Button>
           </div>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid gap-4 md:grid-cols-4 mb-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">総売上</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <div className="grid gap-2 grid-cols-4 mb-2">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">総売上</CardTitle>
+              <DollarSign className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">¥{totalRevenue.toLocaleString()}</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">¥{totalRevenue.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                <TrendingUp className="inline h-3 w-3 text-green-600 mr-1" />
+                <TrendingUp className="inline h-3 w-3 text-foreground mr-1" />
                 前月比 +12.5%
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">総成果数</CardTitle>
-              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">総成果数</CardTitle>
+              <ShoppingCart className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">{totalConversions}</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">{totalConversions}</div>
               <p className="text-xs text-muted-foreground">
-                <TrendingUp className="inline h-3 w-3 text-green-600 mr-1" />
+                <TrendingUp className="inline h-3 w-3 text-foreground mr-1" />
                 前月比 +8.3%
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">総クリック数</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
+          <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">総クリック数</CardTitle>
+              <Target className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">{totalClicks.toLocaleString()}</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">{totalClicks.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                <TrendingUp className="inline h-3 w-3 text-green-600 mr-1" />
+                <TrendingUp className="inline h-3 w-3 text-foreground mr-1" />
                 前月比 +15.2%
               </p>
             </CardContent>
           </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">平均CVR</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          <Card className="cursor-pointer hover:shadow-md transition-shadow duration-150">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0 p-2">
+              <CardTitle className="text-xs font-medium">平均CVR</CardTitle>
+              <BarChart3 className="h-3 w-3 text-muted-foreground" />
             </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold">{avgCVR}%</div>
+            <CardContent className="p-2 pt-0">
+              <div className="text-sm font-bold whitespace-nowrap">{avgCVR}%</div>
               <p className="text-xs text-muted-foreground">
-                <TrendingDown className="inline h-3 w-3 text-red-600 mr-1" />
+                <TrendingDown className="inline h-3 w-3 text-foreground mr-1" />
                 前月比 -0.3%
               </p>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-2 lg:grid-cols-2">
           {/* Active Campaigns */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="px-6 py-4 border-b border-gray-200">
+          <div className="bg-white rounded shadow-sm border">
+            <div className="px-3 py-2 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">アクティブな案件</h3>
+                <h3 className="text-sm font-semibold text-gray-900">アクティブな案件</h3>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => handleNavigate('/advertiser/campaigns')}
+                  onClick={() => navigate('/advertiser/campaigns')}
+                  className="h-6 text-xs"
                 >
                   すべて見る
                 </Button>
@@ -273,10 +268,10 @@ export default function AdvertiserDashboard() {
               <Table>
                 <TableHeader className="bg-gray-50">
                   <TableRow>
-                    <TableHead className="font-semibold text-gray-700">案件名</TableHead>
-                    <TableHead className="font-semibold text-gray-700">ステータス</TableHead>
-                    <TableHead className="font-semibold text-gray-700">成果数</TableHead>
-                    <TableHead className="font-semibold text-gray-700">CVR</TableHead>
+                    <TableHead className="font-semibold text-gray-700 text-xs">案件名</TableHead>
+                    <TableHead className="font-semibold text-gray-700 text-xs">ステータス</TableHead>
+                    <TableHead className="font-semibold text-gray-700 text-xs">成果数</TableHead>
+                    <TableHead className="font-semibold text-gray-700 text-xs">CVR</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -286,22 +281,22 @@ export default function AdvertiserDashboard() {
                       className="cursor-pointer hover:bg-blue-50 transition-colors"
                       onClick={() => handleCampaignClick(campaign)}
                     >
-                      <TableCell className="py-4">
+                      <TableCell className="py-2 text-xs">
                         <div className="font-medium text-gray-900">{campaign.name}</div>
-                        <div className="text-sm text-gray-500">作成日: {formatDate(campaign.createdAt)}</div>
+                        <div className="text-xs text-gray-500">作成日: {formatDate(campaign.createdAt)}</div>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <Badge className={`${getStatusBadgeColor(campaign.status)} px-3 py-1`}>
+                      <TableCell className="py-2">
+                        <Badge className={`${getStatusBadgeColor(campaign.status)} px-2 py-0.5 text-xs`}>
                           {campaign.status === 'ACTIVE' ? 'アクティブ' :
                            campaign.status === 'PAUSED' ? '一時停止' :
                            campaign.status === 'DRAFT' ? '下書き' : '期限切れ'}
                         </Badge>
                       </TableCell>
-                      <TableCell className="py-4">
+                      <TableCell className="py-2 text-xs">
                         <div className="font-semibold text-gray-900">{campaign.conversions}</div>
-                        <div className="text-sm text-gray-500">¥{campaign.revenue.toLocaleString()}</div>
+                        <div className="text-xs text-gray-500">¥{campaign.revenue.toLocaleString()}</div>
                       </TableCell>
-                      <TableCell className="py-4">
+                      <TableCell className="py-2 text-xs">
                         <div className="font-semibold text-blue-600">{campaign.cvr}%</div>
                       </TableCell>
                     </TableRow>
@@ -312,14 +307,15 @@ export default function AdvertiserDashboard() {
           </div>
 
           {/* Recent Conversions */}
-          <div className="bg-white rounded-lg shadow-sm border">
-            <div className="px-6 py-4 border-b border-gray-200">
+          <div className="bg-white rounded shadow-sm border">
+            <div className="px-3 py-2 border-b border-gray-200">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">最近の成果</h3>
+                <h3 className="text-sm font-semibold text-gray-900">最近の成果</h3>
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => handleNavigate('/advertiser/conversions')}
+                  onClick={() => navigate('/advertiser/conversions')}
+                  className="h-6 text-xs"
                 >
                   すべて見る
                 </Button>
@@ -329,10 +325,10 @@ export default function AdvertiserDashboard() {
               <Table>
                 <TableHeader className="bg-gray-50">
                   <TableRow>
-                    <TableHead className="font-semibold text-gray-700">案件名</TableHead>
-                    <TableHead className="font-semibold text-gray-700">媒体</TableHead>
-                    <TableHead className="font-semibold text-gray-700">金額</TableHead>
-                    <TableHead className="font-semibold text-gray-700">ステータス</TableHead>
+                    <TableHead className="font-semibold text-gray-700 text-xs">案件名</TableHead>
+                    <TableHead className="font-semibold text-gray-700 text-xs">媒体</TableHead>
+                    <TableHead className="font-semibold text-gray-700 text-xs">金額</TableHead>
+                    <TableHead className="font-semibold text-gray-700 text-xs">ステータス</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -342,18 +338,18 @@ export default function AdvertiserDashboard() {
                       className="cursor-pointer hover:bg-blue-50 transition-colors"
                       onClick={() => handleConversionClick(conversion)}
                     >
-                      <TableCell className="py-4">
+                      <TableCell className="py-2 text-xs">
                         <div className="font-medium text-gray-900">{conversion.campaignName}</div>
-                        <div className="text-sm text-gray-500">{conversion.transactionId}</div>
+                        <div className="text-xs text-gray-500">{conversion.transactionId}</div>
                       </TableCell>
-                      <TableCell className="py-4">
+                      <TableCell className="py-2 text-xs">
                         <div className="text-gray-900">{conversion.publisherName}</div>
                       </TableCell>
-                      <TableCell className="py-4">
+                      <TableCell className="py-2 text-xs">
                         <div className="font-semibold text-gray-900">¥{conversion.amount.toLocaleString()}</div>
                       </TableCell>
-                      <TableCell className="py-4">
-                        <Badge className={`${getStatusBadgeColor(conversion.status)} px-3 py-1`}>
+                      <TableCell className="py-2">
+                        <Badge className={`${getStatusBadgeColor(conversion.status)} px-2 py-0.5 text-xs`}>
                           {conversion.status === 'APPROVED' ? '承認済み' :
                            conversion.status === 'PENDING' ? '承認待ち' : '拒否'}
                         </Badge>
@@ -413,7 +409,7 @@ export default function AdvertiserDashboard() {
                   <Button variant="outline" onClick={() => setSelectedCampaign(null)}>
                     閉じる
                   </Button>
-                  <Button onClick={() => handleNavigate(`/advertiser/campaigns/${selectedCampaign.id}`)}>
+                  <Button onClick={() => navigate(`/advertiser/campaigns/${selectedCampaign.id}`)}>
                     <Eye className="mr-2 h-4 w-4" />
                     詳細管理
                   </Button>
@@ -469,7 +465,7 @@ export default function AdvertiserDashboard() {
                   <Button variant="outline" onClick={() => setSelectedConversion(null)}>
                     閉じる
                   </Button>
-                  <Button onClick={() => handleNavigate(`/advertiser/conversions/${selectedConversion.id}`)}>
+                  <Button onClick={() => navigate(`/advertiser/conversions/${selectedConversion.id}`)}>
                     <Eye className="mr-2 h-4 w-4" />
                     詳細管理
                   </Button>
