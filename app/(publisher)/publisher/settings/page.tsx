@@ -59,22 +59,33 @@ export default function PublisherSettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container max-w-6xl mx-auto px-4 py-6">
+      <div className="w-full px-3 py-3">
         {/* Page Header */}
-        <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">設定</h1>
-          <p className="text-gray-600 mt-1">
-            アカウント情報や通知設定を管理します
-          </p>
+        <div className="bg-white rounded shadow-sm border p-2 mb-2">
+          <h1 className="text-sm font-bold text-gray-900">設定</h1>
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="bg-white border">
-            <TabsTrigger value="profile">プロフィール</TabsTrigger>
-            <TabsTrigger value="payment">支払い情報</TabsTrigger>
-            <TabsTrigger value="notifications">通知設定</TabsTrigger>
-            <TabsTrigger value="security">セキュリティ</TabsTrigger>
-          </TabsList>
+        <Card>
+          <CardContent className="p-3">
+            <Tabs defaultValue="profile" className="space-y-3">
+              <TabsList className="h-8 w-full">
+                <TabsTrigger value="profile" className="text-xs flex-1">
+                  <User className="mr-1 h-3 w-3" />
+                  プロフィール
+                </TabsTrigger>
+                <TabsTrigger value="payment" className="text-xs flex-1">
+                  <CreditCard className="mr-1 h-3 w-3" />
+                  支払い情報
+                </TabsTrigger>
+                <TabsTrigger value="notifications" className="text-xs flex-1">
+                  <Bell className="mr-1 h-3 w-3" />
+                  通知設定
+                </TabsTrigger>
+                <TabsTrigger value="security" className="text-xs flex-1">
+                  <Shield className="mr-1 h-3 w-3" />
+                  セキュリティ
+                </TabsTrigger>
+              </TabsList>
 
           {/* Profile Tab */}
           <TabsContent value="profile">
@@ -357,7 +368,9 @@ export default function PublisherSettingsPage() {
               </CardContent>
             </Card>
           </TabsContent>
-        </Tabs>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

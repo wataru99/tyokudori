@@ -91,7 +91,6 @@ export default function AdminCampaignsPage() {
   const { navigate } = useNavigation()
   const [isLoading, setIsLoading] = useState(true)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')

@@ -17,7 +17,7 @@ export default function AdminSettingsPage() {
   const { toast } = useToast()
   const { setLoading } = useLoading()
   const [isLoading, setIsLoading] = useState(true)
-  const [loading, setLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   
   // General settings
   const [siteName, setSiteName] = useState('チョクドリ')
@@ -54,7 +54,8 @@ export default function AdminSettingsPage() {
   }, [])
   
   const handleSaveSettings = async () => {
-    setLoading(true)
+    setIsSaving(true)
+    setLoading(true, '設定を保存しています...')
     try {
       // TODO: Implement API call to save settings
       await new Promise(resolve => setTimeout(resolve, 50))
@@ -71,6 +72,7 @@ export default function AdminSettingsPage() {
       })
     } finally {
       setLoading(false)
+      setIsSaving(false)
     }
   }
 
@@ -89,11 +91,11 @@ export default function AdminSettingsPage() {
             </div>
             <Button 
               onClick={handleSaveSettings}
-              disabled={loading}
+              disabled={isSaving}
               className="bg-blue-600 hover:bg-blue-700 text-white h-7 text-xs"
             >
               <Save className="mr-1 h-3 w-3" />
-              {loading ? '保存中...' : '設定を保存'}
+              {isSaving ? '保存中...' : '設定を保存'}
             </Button>
           </div>
         </div>
