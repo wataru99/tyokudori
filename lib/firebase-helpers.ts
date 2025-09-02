@@ -65,7 +65,7 @@ export async function getDocument<T extends DocumentData>(
   const docSnap = await getDoc(docRef)
   
   if (docSnap.exists()) {
-    return { id: docSnap.id, ...docSnap.data() } as T
+    return { id: docSnap.id, ...docSnap.data() } as unknown as T
   } else {
     return null
   }
@@ -81,7 +81,7 @@ export async function getDocuments<T extends DocumentData>(
   return querySnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
-  } as T))
+  } as unknown as T))
 }
 
 // ページネーション対応
@@ -103,7 +103,7 @@ export async function getDocumentsPaginated<T extends DocumentData>(
   const docs = querySnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
-  } as T))
+  } as unknown as T))
   
   const hasMore = docs.length > pageSize
   if (hasMore) {
