@@ -30,18 +30,13 @@ export function downloadCSV(filename: string, csvContent: string) {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
   const link = document.createElement('a')
   
-  if (navigator.msSaveBlob) {
-    // IE 10+
-    navigator.msSaveBlob(blob, filename)
-  } else {
-    // その他のブラウザ
-    link.href = URL.createObjectURL(blob)
-    link.download = filename
-    link.style.display = 'none'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
+  // モダンブラウザでのダウンロード処理
+  link.href = URL.createObjectURL(blob)
+  link.download = filename
+  link.style.display = 'none'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 // レポート用CSVエクスポート
