@@ -303,7 +303,7 @@ export default function AdvertiserContactPage() {
                   <Button 
                     variant="link" 
                     className="p-0 h-auto mt-1 text-xs"
-                    onClick={() => navigateWithLoading('/advertiser/faq')}
+                    onClick={() => navigate('/advertiser/faq')}
                   >
                     FAQを見る →
                   </Button>
