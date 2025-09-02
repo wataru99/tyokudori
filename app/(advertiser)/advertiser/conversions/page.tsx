@@ -99,7 +99,7 @@ export default function AdvertiserConversionsPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { setLoading } = useLoading()
-  const { navigateWithLoading } = useNavigation()
+  const { navigate } = useNavigation()
   const [conversions, setConversions] = useState<Conversion[]>(mockConversions)
   const [selectedConversions, setSelectedConversions] = useState<string[]>([])
   const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false)

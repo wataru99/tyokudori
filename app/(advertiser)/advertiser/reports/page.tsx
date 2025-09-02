@@ -62,7 +62,7 @@ interface CampaignPerformance {
 export default function AdvertiserReportsPage() {
   const router = useRouter()
   const { setLoading } = useLoading()
-  const { navigateWithLoading } = useNavigation()
+  const { navigate } = useNavigation()
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [dateRange, setDateRange] = useState({
     from: new Date(new Date().setDate(new Date().getDate() - 30)),

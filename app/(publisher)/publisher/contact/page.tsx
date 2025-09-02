@@ -18,7 +18,7 @@ export default function PublisherContactPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { setLoading } = useLoading()
-  const { navigateWithLoading } = useNavigation()
+  const { navigate } = useNavigation()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPageLoading, setIsPageLoading] = useState(true)
   
@@ -253,7 +253,7 @@ export default function PublisherContactPage() {
                   <Button 
                     variant="link" 
                     className="p-0 h-auto mt-1 text-xs"
-                    onClick={() => navigateWithLoading('/publisher/faq')}
+                    onClick={() => navigate('/publisher/faq')}
                   >
                     FAQを見る →
                   </Button>

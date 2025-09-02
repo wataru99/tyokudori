@@ -18,7 +18,7 @@ export default function AdvertiserContactPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { setLoading } = useLoading()
-  const { navigateWithLoading } = useNavigation()
+  const { navigate } = useNavigation()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPageLoading, setIsPageLoading] = useState(true)
   

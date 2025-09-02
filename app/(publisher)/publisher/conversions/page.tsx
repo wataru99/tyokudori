@@ -39,7 +39,7 @@ interface Conversion {
 
 export default function PublisherConversionsPage() {
   const { setLoading } = useLoading()
-  const { navigateWithLoading } = useNavigation()
+  const { navigate } = useNavigation()
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [date, setDate] = useState<DateRange | undefined>({

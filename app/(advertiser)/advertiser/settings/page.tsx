@@ -60,7 +60,7 @@ export default function AdvertiserSettingsPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { setLoading } = useLoading()
-  const { navigateWithLoading } = useNavigation()
+  const { navigate } = useNavigation()
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('profile')
   const [isSaving, setIsSaving] = useState(false)

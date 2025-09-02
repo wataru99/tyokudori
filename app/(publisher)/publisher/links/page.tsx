@@ -42,7 +42,7 @@ export default function PublisherLinksPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { setLoading } = useLoading()
-  const { navigateWithLoading } = useNavigation()
+  const { navigate } = useNavigation()
   const [selectedLink, setSelectedLink] = useState<AffiliateLink | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [isPageLoading, setIsPageLoading] = useState(true)
@@ -175,7 +175,7 @@ export default function PublisherLinksPage() {
             </div>
             <Button 
               className="bg-green-600 hover:bg-green-700 text-white h-6 text-xs"
-              onClick={() => navigateWithLoading('/publisher/offers')}
+              onClick={() => navigate('/publisher/offers')}
               size="sm"
             >
               <LinkIcon className="mr-1 h-3 w-3" />
