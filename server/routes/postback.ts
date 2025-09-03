@@ -30,6 +30,28 @@ router.post('/', async (req, res) => {
       }
     }
 
+    // Validate required fields
+    if (!click_id || !transaction_id || !amount) {
+      return res.status(400).json({ error: 'Missing required fields: click_id, transaction_id, amount' })
+    }
+
+    // Find the click to get offer and publisher information
+    const click = await prisma.click.findUnique({
+      where: { clickId: click_id },
+      include: {
+        offer: {
+          include: {
+            advertiser: true
+          }
+        },
+        publisher: true
+      }
+    })
+
+    if (!click) {
+      return res.status(404).json({ error: 'Click not found' })
+    }
+
     // Check for duplicate conversion
     const existingConversion = await prisma.conversion.findFirst({
       where: {
@@ -42,14 +64,30 @@ router.post('/', async (req, res) => {
       return res.status(409).json({ error: 'Duplicate conversion' })
     }
 
-    // Create conversion
+    // Calculate publisher revenue based on offer commission
+    const parsedAmount = parseFloat(amount)
+    let publisherRevenue = 0
+    
+    if (click.offer.commissionType === 'CPA') {
+      publisherRevenue = click.offer.commissionAmount
+    } else if (click.offer.commissionType === 'CPS' && click.offer.commissionPercent) {
+      publisherRevenue = (parsedAmount * click.offer.commissionPercent) / 100
+    } else {
+      publisherRevenue = click.offer.commissionAmount
+    }
+
+    // Create conversion with all required fields
     const conversion = await prisma.conversion.create({
       data: {
         clickId: click_id,
         transactionId: transaction_id,
-        amount: parseFloat(amount),
+        amount: parsedAmount,
         quantity: parseInt(quantity),
-        status,
+        status: status.toUpperCase() as 'PENDING' | 'APPROVED' | 'REJECTED',
+        publisherRevenue,
+        offerId: click.offerId,
+        publisherId: click.publisherId,
+        advertiserId: click.offer.advertiserId,
       },
     })
 
@@ -60,7 +98,12 @@ router.post('/', async (req, res) => {
       conversionId: conversion.id,
     })
   } catch (error) {
-    res.status(400).json({ error: 'Failed to process conversion' })
+    console.error('Postback error:', error)
+    if (error instanceof Error) {
+      res.status(400).json({ error: `Failed to process conversion: ${error.message}` })
+    } else {
+      res.status(400).json({ error: 'Failed to process conversion' })
+    }
   }
 })
 

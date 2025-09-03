@@ -63,17 +63,23 @@ router.post('/', async (req, res) => {
             name: true,
             advertiser: {
               select: {
-                name: true
+                id: true,
+                user: {
+                  select: {
+                    companyName: true
+                  }
+                }
               }
             }
           }
         },
         publisher: {
           select: {
-            name: true,
+            id: true,
             user: {
               select: {
-                email: true
+                email: true,
+                companyName: true
               }
             }
           }
@@ -89,7 +95,11 @@ router.post('/', async (req, res) => {
     })
 
   } catch (error) {
-    logger.error('Error creating offer application:', error)
+    if (error instanceof Error) {
+      logger.error({ error: error.message }, 'Error creating offer application')
+    } else {
+      logger.error({ error }, 'Error creating offer application')
+    }
     res.status(500).json({ error: 'Internal server error' })
   }
 })
@@ -126,7 +136,11 @@ router.get('/by-offer/:offerId', async (req, res) => {
     res.json({ applications })
 
   } catch (error) {
-    logger.error('Error fetching applications by offer:', error)
+    if (error instanceof Error) {
+      logger.error({ error: error.message }, 'Error fetching applications by offer')
+    } else {
+      logger.error({ error }, 'Error fetching applications by offer')
+    }
     res.status(500).json({ error: 'Internal server error' })
   }
 })
@@ -149,7 +163,12 @@ router.get('/by-publisher/:publisherId', async (req, res) => {
           include: {
             advertiser: {
               select: {
-                name: true
+                id: true,
+                user: {
+                  select: {
+                    companyName: true
+                  }
+                }
               }
             }
           }
@@ -161,7 +180,11 @@ router.get('/by-publisher/:publisherId', async (req, res) => {
     res.json({ applications })
 
   } catch (error) {
-    logger.error('Error fetching applications by publisher:', error)
+    if (error instanceof Error) {
+      logger.error({ error: error.message }, 'Error fetching applications by publisher')
+    } else {
+      logger.error({ error }, 'Error fetching applications by publisher')
+    }
     res.status(500).json({ error: 'Internal server error' })
   }
 })
@@ -205,7 +228,8 @@ router.patch('/:applicationId/status', async (req, res) => {
       data: {
         status,
         rejectionReason: status === 'REJECTED' ? rejectionReason : null,
-        reviewedAt: new Date()
+        approvedAt: status === 'APPROVED' ? new Date() : null,
+        rejectedAt: status === 'REJECTED' ? new Date() : null
       },
       include: {
         offer: {
@@ -221,23 +245,10 @@ router.patch('/:applicationId/status', async (req, res) => {
       }
     })
 
-    // If approved, optionally create an affiliate link automatically
+    // If approved, you could implement affiliate link creation logic here
+    // Note: Click model doesn't have trackingCode or isActive fields
     if (status === 'APPROVED') {
-      try {
-        const affiliateLink = await prisma.click.create({
-          data: {
-            offerId: application.offerId,
-            publisherId: application.publisherId,
-            trackingCode: `TRK${Date.now()}${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
-            isActive: true
-          }
-        })
-        
-        logger.info(`Affiliate link created for approved application: ${affiliateLink.id}`)
-      } catch (linkError) {
-        logger.error('Failed to create affiliate link:', linkError)
-        // Continue with the response even if link creation fails
-      }
+      logger.info(`Application ${applicationId} approved`)
     }
 
     logger.info(`Application ${applicationId} status updated to ${status}`)
@@ -248,7 +259,11 @@ router.patch('/:applicationId/status', async (req, res) => {
     })
 
   } catch (error) {
-    logger.error('Error updating application status:', error)
+    if (error instanceof Error) {
+      logger.error({ error: error.message }, 'Error updating application status')
+    } else {
+      logger.error({ error }, 'Error updating application status')
+    }
     res.status(500).json({ error: 'Internal server error' })
   }
 })
@@ -315,7 +330,11 @@ router.get('/', async (req, res) => {
     })
 
   } catch (error) {
-    logger.error('Error fetching applications:', error)
+    if (error instanceof Error) {
+      logger.error({ error: error.message }, 'Error fetching applications')
+    } else {
+      logger.error({ error }, 'Error fetching applications')
+    }
     res.status(500).json({ error: 'Internal server error' })
   }
 })

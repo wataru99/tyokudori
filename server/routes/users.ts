@@ -43,7 +43,11 @@ router.get('/', async (req, res) => {
       },
     })
   } catch (error) {
-    logger.error('Error fetching users:', error)
+    if (error instanceof Error) {
+      logger.error({ error: error.message }, 'Error fetching users')
+    } else {
+      logger.error({ error }, 'Error fetching users')
+    }
     res.status(500).json({ error: 'Internal server error' })
   }
 })
@@ -75,7 +79,11 @@ router.get('/:id', async (req, res) => {
 
     res.json(user)
   } catch (error) {
-    logger.error('Error fetching user:', error)
+    if (error instanceof Error) {
+      logger.error({ error: error.message }, 'Error fetching user')
+    } else {
+      logger.error({ error }, 'Error fetching user')
+    }
     res.status(500).json({ error: 'Internal server error' })
   }
 })
