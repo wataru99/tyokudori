@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "node node_modules/next/dist/bin/next dev -p 3001",
+    "dev": "npx next dev -p 3001",
     "dev:turbo": "npx next dev -p 3001 --turbo",
     "dev:all": "npx concurrently \"npx next dev -p 3001\" \"npx tsx watch server/index.ts\" \"open-cli http://localhost:3001\"",
     "build": "npx next build && npx tsc -p server/tsconfig.json",
