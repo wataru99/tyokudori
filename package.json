@@ -7,7 +7,8 @@
     "dev:turbo": "npx next dev -p 3001 --turbo",
     "dev:all": "npx concurrently \"npx next dev -p 3001\" \"npx tsx watch server/index.ts\" \"open-cli http://localhost:3001\"",
     "build": "npx next build && npx tsc -p server/tsconfig.json",
-    "start": "NODE_ENV=production node server/dist/index.js",
+    "start": "NODE_ENV=production node server/dist/next-server.js",
+    "start:standalone": "npx concurrently \"npx next start -p 3001\" \"NODE_ENV=production node server/dist/index.js\"",
     "seed": "npx tsx scripts/seed.ts",
     "lint": "npx next lint",
     "typecheck": "npx tsc --noEmit"
