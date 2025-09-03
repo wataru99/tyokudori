@@ -296,8 +296,12 @@ router.get('/', async (req, res) => {
           offer: {
             include: {
               advertiser: {
-                select: {
-                  name: true
+                include: {
+                  user: {
+                    select: {
+                      companyName: true
+                    }
+                  }
                 }
               }
             }
