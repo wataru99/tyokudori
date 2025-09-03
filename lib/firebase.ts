@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app'
 import type { Firestore } from 'firebase/firestore'
-import type { Storage } from 'firebase/storage'
+import type { FirebaseStorage } from 'firebase/storage'
 import type { Auth } from 'firebase/auth'
 import type { Database } from 'firebase/database'
 import type { Analytics } from 'firebase/analytics'
@@ -22,7 +22,7 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp()
 // Lazy-loaded Firebase services
 let _db: Firestore | null = null
 let _rtdb: Database | null = null
-let _storage: Storage | null = null
+let _storage: FirebaseStorage | null = null
 let _auth: Auth | null = null
 let _analytics: Analytics | null = null
 
